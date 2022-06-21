@@ -2,6 +2,8 @@ import tkinter
 from tkinter import ttk
 from tkinterweb import HtmlFrame
 
+crashHandling = True
+
 class newTab():
     def __init__(self,tab,stringVar,startpage):
         self.addressObject = tkinter.Frame(tab)
@@ -19,6 +21,7 @@ class newTab():
         self.browser = HtmlFrame(tab)
         self.browser.pack(fill="both", expand=True)
 
+        self.browser.enable_crash_prevention(isenabled=crashHandling)
         self.browser.load_website(startpage)
 
     def goToPage(self,event = None):

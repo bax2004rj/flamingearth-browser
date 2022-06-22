@@ -40,7 +40,19 @@ class newTab():
         self.hamburgerMenu.add_cascade(label="Downloads",menu=self.downloadMenu)
         self.hamburgerMenu.add_cascade(label="Bookmarks",menu=self.bookmarksMenu)
         self.hamburgerMenu.add_separator()
+        self.hamburgerMenu.add_command(label="Find")
         self.hamburgerMenu.add_cascade(label="Zoom",menu=self.zoomMenu)
+
+        self.contextMenu = tkinter.Menu(self.addressBar)
+        self.contextMenu.add_command(label="Copy")
+        self.contextMenu.add_separator()
+        self.contextMenu.add_command(label="Back")
+        self.contextMenu.add_command(label="Forward")
+        self.contextMenu.add_command(label="Reload",command=self.refresh)
+        self.contextMenu.add_separator()
+        self.contextMenu.add_command(label="Find")
+        self.contextMenu.add_cascade(label="Zoom",menu=self.zoomMenu)
+
 
         self.menuButton = ttk.Menubutton(self.addressBar,text = "≡",menu = self.hamburgerMenu)
         self.menuButton.pack(side = "right")
@@ -80,16 +92,19 @@ class newTab():
 
     def zoomIn(self):
         self.zoom += .25
+        self.zoomMenu.entryconfig(1,label = "Zoom level: %d%"%self.zoom*100)
         self.browser.set_zoom(self.zoom)
         self.zoomButton.pack(side = "right")
     
     def zoomOut(self):
         self.zoom -= .25
+        self.zoomMenu.entryconfig(1,label = "Zoom level: %d%"%self.zoom*100)
         self.browser.set_zoom(self.zoom)
         self.zoomButton.pack(side = "right")
     
     def zoomReset(self):
         self.zoom = 1
+        self.zoomMenu.entryconfig(1,label = "Zoom level: %d%"%self.zoom*100)
         self.browser.set_zoom(self.zoom)
         self.zoomButton.pack_forget()
 

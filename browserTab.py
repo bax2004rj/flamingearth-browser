@@ -45,8 +45,10 @@ class newTab():
         self.menuButton = ttk.Menubutton(self.addressBar,text = "≡",menu = self.hamburgerMenu)
         self.menuButton.pack(side = "right")
 
-        self.menuButton = ttk.Menubutton(self.addressBar,text = "↓",menu = self.downloadMenu)
-        self.menuButton.pack(side = "right")
+        self.downloadButton = ttk.Menubutton(self.addressBar,text = "↓",menu = self.downloadMenu)
+        self.downloadButton.pack(side = "right")
+
+        self.zoomButton = ttk.Menubutton(self.addressBar,text = "🔍",menu = self.zoomMenu)
 
         self.homeButton = ttk.Button(self.addressBar,text = "⌂️",command = self.goHome)
         self.homeButton.pack(side = "right")
@@ -61,6 +63,7 @@ class newTab():
         
         self.browser = HtmlFrame(tab)
         self.browser.pack(fill="both", expand=True)
+        self.browser.on_url_change(self.changeUrl)
 
         self.browser.enable_crash_prevention(isenabled=crashHandling)
         self.browser.load_website(startpage)
@@ -78,11 +81,17 @@ class newTab():
     def zoomIn(self):
         self.zoom += .25
         self.browser.set_zoom(self.zoom)
+        self.zoomButton.pack(side = "right")
     
     def zoomOut(self):
         self.zoom -= .25
         self.browser.set_zoom(self.zoom)
+        self.zoomButton.pack(side = "right")
     
     def zoomReset(self):
         self.zoom = 1
         self.browser.set_zoom(self.zoom)
+        self.zoomButton.pack_forget()
+
+    def changeUrl(self,title):
+        self.currentAddress.set(title)

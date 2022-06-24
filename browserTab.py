@@ -92,19 +92,22 @@ class newTab():
 
     def zoomIn(self):
         self.zoom += .25
-        self.zoomMenu.entryconfig(1,label = "Zoom level: %d%"%self.zoom*100)
+        self.percentZoom = self.zoom*100
+        self.zoomMenu.entryconfig(0,label = "Zoom level: %d%%"%(self.percentZoom))
         self.browser.set_zoom(self.zoom)
         self.zoomButton.pack(side = "right")
     
     def zoomOut(self):
         self.zoom -= .25
-        self.zoomMenu.entryconfig(1,label = "Zoom level: %d%"%self.zoom*100)
+        self.percentZoom = self.zoom*100
+        self.zoomMenu.entryconfig(0,label = "Zoom level: %d%%"%(self.percentZoom))
         self.browser.set_zoom(self.zoom)
         self.zoomButton.pack(side = "right")
     
     def zoomReset(self):
         self.zoom = 1
-        self.zoomMenu.entryconfig(1,label = "Zoom level: %d%"%self.zoom*100)
+        self.percentZoom = self.zoom*100
+        self.zoomMenu.entryconfig(0,label = "Zoom level: %d%%"%(self.percentZoom))
         self.browser.set_zoom(self.zoom)
         self.zoomButton.pack_forget()
 

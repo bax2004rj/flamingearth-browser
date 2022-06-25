@@ -43,17 +43,6 @@ class newTab():
         self.hamburgerMenu.add_command(label="Find")
         self.hamburgerMenu.add_cascade(label="Zoom",menu=self.zoomMenu)
 
-        self.contextMenu = tkinter.Menu(self.addressBar)
-        self.contextMenu.add_command(label="Copy")
-        self.contextMenu.add_separator()
-        self.contextMenu.add_command(label="Back")
-        self.contextMenu.add_command(label="Forward")
-        self.contextMenu.add_command(label="Reload",command=self.refresh)
-        self.contextMenu.add_separator()
-        self.contextMenu.add_command(label="Find")
-        self.contextMenu.add_cascade(label="Zoom",menu=self.zoomMenu)
-
-
         self.menuButton = ttk.Menubutton(self.addressBar,text = "≡",menu = self.hamburgerMenu)
         self.menuButton.pack(side = "right")
 
@@ -77,8 +66,27 @@ class newTab():
         self.browser.pack(fill="both", expand=True)
         self.browser.on_url_change(self.changeUrl)
 
+        self.cMenu = tkinter.Menu(self.browser)
+        self.cMenu.add_command(label="Copy")
+        self.cMenu.add_separator()
+        self.cMenu.add_command(label="Back")
+        self.cMenu.add_command(label="Forward")
+        self.cMenu.add_command(label="Reload",command=self.refresh)
+        self.cMenu.add_separator()
+        self.cMenu.add_command(label="Find")
+        self.cMenu.add_cascade(label="Zoom",menu=self.zoomMenu)
+
+
         self.browser.enable_crash_prevention(isenabled=crashHandling)
         self.browser.load_website(startpage)
+
+        self.browser.bind("<Button-3>",self.contextMenu)
+    
+    def contextMenu(self,event):
+        try:
+            self.cMenu.tk_popup(event.x_root,event.y_root,0)
+        finally:
+             self.cMenu.grab_release()
 
     def goToPage(self,event = None):
         self.page = self.currentAddress.get()

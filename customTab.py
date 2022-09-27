@@ -3,7 +3,7 @@ from tkinter import ttk
 import tkinterweb
 
 class customTab(ttk.Notebook):
-    """A tkinterweb Notebook with close buttons on each tab, made with example from https://stackoverflow.com/questions/39458337/is-there-a-way-to-add-close-buttons-to-tabs-in-tkinter-ttk-notebook"""
+    ## A tkinterweb Notebook with close buttons on each tab, made with example from https://stackoverflow.com/questions/39458337/is-there-a-way-to-add-close-buttons-to-tabs-in-tkinter-ttk-notebook
 
     __initialized = False
     def __init__(self, *args, **kwargs):

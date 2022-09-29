@@ -3,6 +3,7 @@ from tkinter import ttk
 from tkinterweb import HtmlFrame
 from PIL import ImageTk, Image
 import fileHandler
+import math
 
 class newTab():
     def __init__(self,tab,stringVar,startpage):
@@ -79,25 +80,22 @@ class newTab():
         self.splashText.pack()
         self.PopularFrame = ttk.Frame(tab)
         self.PopularFrame.pack(fill="both")
-        for r in range((int((self.ShowAmount)/4))):
+        for r in range(math.ceil((self.ShowAmount)/4)):
             self.columnFrames.append(ttk.Frame(self.PopularFrame))
-            self.columnFrames[r].pack(side = "top")
+            self.columnFrames[r].pack(side = "top",expand =1)
             for c in range(4):
                 i = c+(4*r)
-                try:
+                if i<len(self.PopularPages):
                     newestObjectText = self.PopularPages[i]
-                    self.newestImageData.append(fileHandler.noIcon)
+                    self.newestImageData.append(Image.open(fileHandler.noIcon))
                     self.newestImages.append(ImageTk.PhotoImage(image=self.newestImageData[i]))
                     print("Preset success")
-                except:
+                else:
                     newestObjectText = "Unset"
-                    self.newestImageData.append(fileHandler.noShortcut)
+                    self.newestImageData.append(Image.open(fileHandler.noShortcut))
                     self.newestImages.append(ImageTk.PhotoImage(image=self.newestImageData[i]))
-                    print("Preset not found")
-                else: 
-                    print("General failure")
-                
-                self.ShortcutButtons.append(ttk.Button(self.columnFrames[r],text=newestObjectText,image=self.newestImages[i],compound="top").pack(side = "left",expand=1))
+                self.ShortcutButtons.append(ttk.Button(self.columnFrames[-1],text=newestObjectText,image=self.newestImages[i],compound="top"))
+                self.ShortcutButtons[-1].pack(side = "left")
 
         self.quickAccess = ttk.Button()
 

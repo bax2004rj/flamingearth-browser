@@ -79,7 +79,7 @@ class customTab(ttk.Notebook):
 
         style.element_create("close", "image", "img_close",
                             ("active", "pressed", "!disabled", "img_closepressed"),
-                            ("active", "!disabled", "img_closeactive"), border=8, sticky='')
+                            ("active", "!disabled", "img_closeactive"), border=16, sticky='')
         style.layout("CustomNotebook", [("CustomNotebook.client", {"sticky": "nswe"})])
         style.layout("CustomNotebook.Tab", [
             ("CustomNotebook.tab", {

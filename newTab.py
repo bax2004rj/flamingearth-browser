@@ -49,21 +49,9 @@ class newTab():
         self.hamburgerMenu.add_separator()
         self.hamburgerMenu.add_command(label="Find")
         self.hamburgerMenu.add_cascade(label="Zoom",menu=self.zoomMenu,state="disabled")
-
-        self.menuButton = ttk.Menubutton(self.addressObject,text = "≡",menu = self.hamburgerMenu)
-        self.menuButton.pack(side = "right")
-
-        self.downloadButton = ttk.Menubutton(self.addressObject,text = "↓",menu = self.downloadMenu)
-        self.downloadButton.pack(side = "right")
-
-        self.zoomButton = ttk.Menubutton(self.addressObject,text = "🔍",menu = self.zoomMenu)
-
-        self.homeButton = ttk.Button(self.addressObject,text = "⌂️")
-        self.homeButton.pack(side = "right")
-
         # New tab design
 
-        self.splashText = ttk.Label(tab,text="Welcome to the Flamingearth browser",font=("TkDefaultFont",32))
+        self.splashText = ttk.Label(tab,text="Flamingearth Browser",font=("TkDefaultFont",32))
         self.splashText.pack()
         self.vText = ttk.Label(tab,text="v1.00a")
         self.vText.pack()

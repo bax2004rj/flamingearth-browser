@@ -17,11 +17,9 @@ class main():
         self.addcloseframe = ttk.Frame(self.app)
         self.addcloseframe.pack(side="top", fill = "x")
 
-        self.newtab = ttk.Button(self.addcloseframe,text="+",command= self.tabAdd) # Tab adder
-        self.newtab.pack(side="right")
-
         self.tabs = customTab.customTab(self.app) # Create tabs
         self.tabs.pack(fill="both",expand=1)
+        self.tabs.bind_newtab(self.tabAdd)
 
         self.tabObjects = []
         self.tabFrames = []

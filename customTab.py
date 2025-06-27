@@ -7,6 +7,7 @@ class customTab(ttk.Notebook):
 
     __initialized = False
     def __init__(self, *args, **kwargs):
+        ## Custom notebook with close buttons
         if not self.__initialized:
             self.__initialize_custom_style()
             self.__inititialized = True
@@ -16,6 +17,14 @@ class customTab(ttk.Notebook):
 
         self.bind("<ButtonPress-1>", self.on_close_press, True)
         self.bind("<ButtonRelease-1>", self.on_close_release)
+
+        # New tab button
+        self.newtab = ttk.Button(self, text="+")
+        self.newtab.place(relx=1.0, rely=0.0, anchor='ne', x=-5, y=5)
+
+    ## Bind newtab to command
+    def bind_newtab(self,command):
+        self.newtab.configure(command=command)
     
     def on_close_press(self, event):
         """Called when the button is pressed over the close button"""
@@ -96,7 +105,7 @@ class customTab(ttk.Notebook):
                                     ("CustomNotebook.label", {"side": "left", "sticky": ''}),
                                     ("CustomNotebook.close", {"side": "left", "sticky": ''}),
                                 ]
-                        })
+                        }),
                     ]
                 })
             ]

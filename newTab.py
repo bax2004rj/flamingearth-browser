@@ -16,12 +16,15 @@ class newTab():
         self.ShowAmount = 8
         # Internal var
         newestObjectText = ""
+        # Frame
+        self.newTabFrame = tkinter.Frame(tab)
+        self.newTabFrame.pack(side = "top",fill = "both")
 
-        ## UI elements 
-        self.addressObject = tkinter.Frame(tab)
+        # UI elements 
+        self.addressObject = tkinter.Frame(self.newTabFrame)
         self.addressObject.pack(side = "top",fill = "x")
         
-        self.currentAddress = tkinter.StringVar(tab,value = startpage)
+        self.currentAddress = tkinter.StringVar(self.newTabFrame,value = startpage)
 
         self.historyMenu = tkinter.Menu(self.addressObject)
         self.historyMenu.add_command(label="Clear history")
@@ -51,22 +54,22 @@ class newTab():
         self.hamburgerMenu.add_cascade(label="Zoom",menu=self.zoomMenu,state="disabled")
         # New tab design
 
-        self.splashText = ttk.Label(tab,text="Flamingearth Browser",font=("TkDefaultFont",32))
+        self.splashText = ttk.Label(self.newTabFrame,text="Flamingearth Browser",font=("TkDefaultFont",32))
         self.splashText.pack()
-        self.vText = ttk.Label(tab,text="v1.00a")
+        self.vText = ttk.Label(self.newTabFrame,text="v1.00a")
         self.vText.pack()
 
-        self.midBar = ttk.Frame(tab)
+        self.midBar = ttk.Frame(self.newTabFrame)
         self.midBar.pack()
 
-        self.newTabAddressBar = ttk.Entry(self.midBar,textvariable = self.currentAddress)
-        self.newTabAddressBar.bind("<Return>")
-        self.newTabAddressBar.pack(fill = "x",side = "left")
-        self.newTabGobutton = ttk.Button(self.midBar,style="Accent.TButton",text = "Go")
-        self.newTabGobutton.pack(side="right")
-        self.splashText = ttk.Label(tab,text="Most viewed pages",font=("TkDefaultFont",16))
+        ##self.newTabAddressBar = ttk.Entry(self.midBar,textvariable = self.currentAddress)
+        ##self.newTabAddressBar.bind("<Return>")
+        ##self.newTabAddressBar.pack(fill = "x",side = "left")
+        ##self.newTabGobutton = ttk.Button(self.midBar,style="Accent.TButton",text = "Go")
+        ##self.newTabGobutton.pack(side="right")
+        self.splashText = ttk.Label(self.newTabFrame,text="Most viewed pages",font=("TkDefaultFont",16))
         self.splashText.pack()
-        self.PopularFrame = ttk.Frame(tab)
+        self.PopularFrame = ttk.Frame(self.newTabFrame)
         self.PopularFrame.pack(fill="both")
         for r in range(math.ceil((self.ShowAmount)/4)):
             self.columnFrames.append(ttk.Frame(self.PopularFrame))

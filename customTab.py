@@ -22,7 +22,7 @@ class customTab(ttk.Notebook):
         self.newtab = ttk.Button(self, text="+")
         self.newtab.place(relx=1.0, rely=0.0, anchor='ne', x=-5, y=5)
 
-    ## Bind newtab to command
+    ## Bind newtab to command, since *args and **kwargs doesn't like having a "command" parameter next to it
     def bind_newtab(self,command):
         self.newtab.configure(command=command)
     

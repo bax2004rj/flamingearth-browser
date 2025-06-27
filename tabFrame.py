@@ -61,9 +61,24 @@ class newFrame:
         self.gobutton.pack(side="right")
 
         self.newtab = newTab.newTab(tabFrame,frameVar,startpage)
+        self.browserView = browserTab.newTab(tabFrame,None,startpage,self.zoomMenu)
     
-    def goToPage(self,page = "flamingearth://newtab"):
-        print("Go to page")
+    def goToPage(self,event): #Handle going to pages
+        page = self.addressBar.get()
+        print(page)
+        if page != "flamingearth://newtab":
+            try:
+                self.newtab.newTabFrame.pack_forget()
+            except Exception:
+                print("newtab frame did not need to be destroyed")
+        if page[:4] == "http":
+            try:
+                self.browserView.showBrowserView()
+                self.zoomButton.configure(state="normal") # Enable zoom menu
+            except Exception:
+                pass   
+            self.browserView.changeUrl(page)
+        
     
     def goHome(self):
         self.goToPage(self.homepage)

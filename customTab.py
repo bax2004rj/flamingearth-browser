@@ -66,7 +66,12 @@ class customTab(ttk.Notebook):
 
         self.state(["!pressed"])
         self._active = None
-    
+
+    """ 
+    ## Used to fix an error when using Tkinterweb's Notebook class 
+    def on_tab_change(self, event):
+        tkinterweb.Notebook.on_tab_change(self, event) """
+
     def __initialize_custom_style(self):
         style = ttk.Style()
         self.images = (

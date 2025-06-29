@@ -12,6 +12,8 @@ class newTab():
         
         self.browser = HtmlFrame(tab)
         #self.browser.pack(fill="both", expand=True)
+        self.zoom = 1
+        self.percentZoom = self.zoom*100
 
         self.cMenu = tkinter.Menu(self.browser)
         self.cMenu.add_command(label="Copy")
@@ -24,6 +26,7 @@ class newTab():
         self.cMenu.add_cascade(label="Zoom",menu=zoomMenu)
 
         self.browser.bind("<Button-3>",self.contextMenu)
+        self.browser.bind("<<UrlChanged>>",self.changeUrl)
     
     def showBrowserView(self):
         self.browser.pack(fill="both", expand=True)
@@ -73,3 +76,8 @@ class newTab():
 
     def changeUrl(self,title):
         self.browser.load_website(title)
+    
+    #Send link clicked event to parent tabFrame
+    def linkClicked(self,event):
+        print("[BROWSERVIEW.PY] Link clicked:", event.url)
+        self.event_generate("<<LinkClicked>>", when="tail", url=event.url)

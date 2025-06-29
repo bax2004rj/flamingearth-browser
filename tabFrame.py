@@ -2,17 +2,21 @@ import tkinter
 from tkinter import ttk
 import newTab
 import browserTab
+import settings
+import fileHandler
 
 class newFrame:
     def __init__(self,tabFrame,frameVar,startpage):
         self.homepage = startpage
-            
+        self.sessionTitles = []
+        self.sessionUrls = []
+
         self.addressObject = tkinter.Frame(tabFrame)
         self.addressObject.pack(side = "top",fill = "x")
         
         self.currentAddress = tkinter.StringVar(tabFrame,value = startpage)
 
-        self.addressBar = ttk.Combobox(self.addressObject,textvariable = self.currentAddress)
+        self.addressBar = ttk.Combobox(self.addressObject,textvariable = self.currentAddress,values = self.sessionUrls)
         self.addressBar.bind("<Return>",self.goToPage)
         self.addressBar.pack(fill = "x")
 
@@ -42,6 +46,7 @@ class newFrame:
         self.hamburgerMenu.add_separator()
         self.hamburgerMenu.add_command(label="Find")
         self.hamburgerMenu.add_cascade(label="Zoom",menu=self.zoomMenu)
+        self.hamburgerMenu.add_command(label="Settings",command=lambda: self.goToPage("flamingearth://settings"))
 
         self.menuButton = ttk.Menubutton(self.addressBar,text = "≡",menu = self.hamburgerMenu)
         self.menuButton.pack(side = "right")
@@ -62,8 +67,11 @@ class newFrame:
 
         self.newtab = newTab.newTab(tabFrame,frameVar,startpage)
         self.browserView = browserTab.newTab(tabFrame,None,startpage,self.zoomMenu)
+        self.settingsFrame = settings.Settings(tabFrame)
+
+        tabFrame.bind("<<LinkClicked>>",self.pageChanged) # Bind link clicked event to pageChanged method
     
-    def goToPage(self,event): #Handle going to pages
+    def goToPage(self,event=None): #Handle going to pages
         page = self.addressBar.get()
         print(page)
         if page != "flamingearth://newtab":
@@ -71,15 +79,29 @@ class newFrame:
                 self.newtab.newTabFrame.pack_forget()
             except Exception:
                 print("newtab frame did not need to be destroyed")
-        if page[:4] == "http":
+        if page[:4] == "http" or page[:4] == "file":
             try:
                 self.browserView.showBrowserView()
                 self.zoomButton.configure(state="normal") # Enable zoom menu
             except Exception:
                 pass   
             self.browserView.changeUrl(page)
-        
+            self.zoomButton.configure(state="disabled") # Disable zoom menu
+        elif page[:12] == "flamingearth":
+            subpage = page.lstrip("flamingearth://")
+            self.browserView.hideBrowserView()
+            if subpage == "newtab":
+                self.newtab.newTabFrame.pack(fill="both", expand=True)
+                self.browserView.hideBrowserView()
+            elif subpage == "settings":
+                self.newtab.newTabFrame.pack_forget()
+                self.browserView.hideBrowserView()
+                self.settingsFrame.pack(fill="both", expand=True)
     
+    def pageChanged(self,event):
+        self.currentAddress.set(event.url)
+        self.seesionurls.append(event.url)
+
     def goHome(self):
         self.goToPage(self.homepage)
     

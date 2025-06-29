@@ -1,17 +1,21 @@
 import tkinter
 from tkinter import ttk
 import sv_ttk
+import darkdetect
 # Other imports
 import tabFrame
 import customTab
+import fileHandler
 
 class main():
     def __init__(self):
+        fileHandler.loadSettings() # Read settings from file
+ 
         self.app = tkinter.Tk()
+        self.setDarkmode() # Set dark mode
         self.app.winfo_toplevel().title("Flamingearth Browser v1.0a")
         self.app.geometry("1366x720")
-
-        sv_ttk.set_theme("dark") # Enable darkmode
+       
 
         self.tabs = customTab.customTab(self.app) # Create tabs
         self.tabs.pack(fill="both",expand=1)
@@ -21,7 +25,13 @@ class main():
         self.tabFrames = []
         self.tabVars = []
         self.homepage = "flamingearth://newtab"
-    
+
+    def setDarkmode(self):
+        if fileHandler.darkmode == True and fileHandler.tkinterTheme == "sv_ttk":
+            sv_ttk.set_theme("dark") # Enable darkmode
+        elif fileHandler.darkmode == False and fileHandler.tkinterTheme == "sv_ttk":
+            sv_ttk.set_theme("light") # Enable lightmode
+        
     def tabAdd(self,page = "http://www.google.com/"): # Create new tab in tabFrame module
         newFrame = ttk.Frame(self.tabs)
         newtab = self.tabs.add(newFrame,text="New tab")

@@ -76,3 +76,8 @@ class newTab():
     def changeUrl(self,title):
         self.browser.load_website(title)
     
+    def urlChanged(self, event):
+        """Handle URL change event."""
+        print("URL changed")
+        # You can add more logic here if needed
+        # For example, update the address bar or perform other actions

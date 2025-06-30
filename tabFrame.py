@@ -1,15 +1,17 @@
 import tkinter
 from tkinter import ttk
+import datetime
 import newTab
 import browserTab
 import settings
 import fileHandler
 
 class newFrame:
-    def __init__(self,tabFrame,frameVar,startpage):
+    def __init__(self,tabFrame,frameVar,startpage,tabid=0):
         self.homepage = startpage
         self.sessionTitles = []
         self.sessionUrls = []
+        self.tab_id = tabid
 
         self.addressObject = tkinter.Frame(tabFrame)
         self.addressObject.pack(side = "top",fill = "x")
@@ -70,8 +72,9 @@ class newFrame:
         self.zoomMenu.add_command(label="Reset",command = lambda: self.browserView.zoomReset(self.zoomMenu,self.zoomButton))
         self.zoomMenu.add_command(label="-25%",command = lambda: self.browserView.zoomOut(self.zoomMenu,self.zoomButton))
 
-        self.browserView.browser.bind("<<UrlChanged>>",self.pageChanged) # Bind link clicked event to pageChanged method
-    
+        self.browserView.browser.bind("<<DownloadingResource>>",self.pageChanged) # Bind link clicked event to pageChanged method
+        self.browserView.browser.bind("<<DoneLoading>>",self.loadingDone) # Bind page loaded event to loadingDone method
+
     def goToPage(self,event=None): #Handle going to pages
         page = self.addressBar.get()
         print(page)
@@ -99,7 +102,7 @@ class newFrame:
                 self.browserView.hideBrowserView()
                 self.settingsFrame.pack(fill="both", expand=True)
     
-    def pageChanged(self,event):
+    def pageChanged(self,event=None):
         newURL = self.browserView.browser.current_url
         print("[TABFRAME] Page changed to:",newURL)
         self.currentAddress.set(newURL)
@@ -107,9 +110,21 @@ class newFrame:
         self.addressBar.update()
         self.refreshButton.configure(label = "X")
 
-    def loadingDone(self):
+    def loadingDone(self,event=None):
+        self.sessionUrls.append(self.browserView.browser.current_url)
+        self.sessionTitles.append(self.browserView.browser.title())
+        fileHandler.history.append(self.browserView.browser.current_url)
+        fileHandler.historyTimeAccessed.append(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        fileHandler.bookmarks.append(self.browserView.browser.current_url)
         self.refreshButton.configure(label = "↺")
 
+    def changeTabTitle(self,event, IsFromCustomProtocol = False, CustomTitle = "Tab title"):
+        if not IsFromCustomProtocol:
+            newTitle = self.browserView.browser.title() # Get the current title from the browser
+        else :
+            newTitle = CustomTitle
+        self.tabFrame.event_generate("<<TabTitleChanged>>", data=newTitle, tabId= self.tabId) # Trigger the event with the new title
+    
     def goHome(self):
         self.goToPage(self.homepage)
     

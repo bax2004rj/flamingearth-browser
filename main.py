@@ -1,7 +1,6 @@
 import tkinter
 from tkinter import ttk
 import sv_ttk
-import darkdetect
 # Other imports
 import tabFrame
 import customTab
@@ -24,6 +23,7 @@ class main():
         self.tabObjects = []
         self.tabFrames = []
         self.tabVars = []
+        self.processCount = 0 
         self.homepage = "flamingearth://newtab"
 
     def setDarkmode(self):
@@ -38,8 +38,9 @@ class main():
         self.tabVars.append(tkinter.StringVar(self.app,"New tab"))
         self.tabFrames.append(newFrame)
         self.tabObjects.append(newtab) # Formerly textVariable = self.tabVars[-1]
-        self.tabFrame = tabFrame.newFrame(self.tabFrames[-1],self.tabVars[-1],self.homepage)
-        print ("New tab generated")
+        self.processCount += 1
+        self.tabFrame = tabFrame.newFrame(self.tabFrames[-1],self.tabVars[-1],self.homepage,self.processCount)
+        print ("New tab generated (process id: %d)"% self.processCount)
         
 
 browser = main()

@@ -38,12 +38,14 @@ darkmode = False # Dark mode autodetect by default
 tkinterTheme = "sv_ttk" # Theme for tkinter, sv_ttk is the default
 
 displayBookmarks = True # Display bookmarks in the address bar
+notifyForTabsOnQuit = 0 # Notify user if tabs are open on quit. -1 = no notification, 0 = always ask, 1 <= ask if there are more tabs open than threshold  
 
 newtabDisplayMode = "mostVisited" 
 newtabItems = 8
 
 browserFlags = []
 
+homepage = "flamingearth://newtab"
 history = [] # History list
 historyTimeAccessed = [] # History date accessed list
 bookmarks = [] # Bookmarks url list
@@ -55,7 +57,7 @@ downloadSource = [] # Downloads source list
 
 
 def loadSettings():
-    global autodark, darkmode, history, historyDateAccessed, downloads, bookmarks, settingsFile
+    global autodark, darkmode, history, historyDateAccessed, downloads, bookmarks, settingsFile, homepage, notifyForTabsOnQuit
     # Create appdata directory if it doesn't exist
     if not os.path.exists(appData):
         os.makedirs(appData)
@@ -68,9 +70,12 @@ def loadSettings():
             darkmode = settings.get('darkmode', False)
             tkinterTheme = settings.get('tkinterTheme', 'sv_ttk')
             displayBookmarks = settings.get('displayBookmarks', True)
+            notifyForTabsOnQuit = settings.get('notifyForTabsOnQuit', 0)
             newtabDisplayMode = settings.get('newtabDisplayMode', 'mostVisited')
             newtabItems = settings.get('newtabItems', 8)
             browserFlags = settings.get('browserFlags', [])
+            homepage = settings.get('homepage', 'flamingearth://newtab')
+            print("[FILEHANDLER] Settings loaded successfully.")
     else:
         # If settings file does not exist, create default settings
         print ("[FILEHANDLER] Settings file not found, creating default settings...")
@@ -79,9 +84,11 @@ def loadSettings():
             'darkmode': darkmode,
             'tkinterTheme': tkinterTheme,
             'displayBookmarks': displayBookmarks,
+            'notifyForTabsOnQuit': notifyForTabsOnQuit,
             'newtabDisplayMode': newtabDisplayMode,
             'newtabItems': newtabItems,
-            'browserFlags': browserFlags
+            'browserFlags': browserFlags,
+            'homepage': homepage
         }
         with open(settingsFile, 'w') as file:
             json.dump(settings, file, indent=4)

@@ -26,27 +26,11 @@ class newFrame:
         self.downloadMenu = tkinter.Menu(self.addressBar)
         self.downloadMenu.add_command(label="Clear downloads")
 
-        self.zoom = 1
-
         self.zoomMenu = tkinter.Menu(self.addressBar)
-        self.zoomMenu.add_command(label="Zoom level: 100%",state="disabled")
-        self.zoomMenu.add_command(label="+25%",command = self.zoomIn)
-        self.zoomMenu.add_command(label="Reset",command = self.zoomReset)
-        self.zoomMenu.add_command(label="-25%",command = self.zoomOut)
 
         self.bookmarksMenu = tkinter.Menu(self.addressBar)
 
         self.hamburgerMenu = tkinter.Menu(self.addressBar)
-        self.hamburgerMenu.add_command(label="New tab")
-        self.hamburgerMenu.add_command(label="New window")
-        self.hamburgerMenu.add_separator()
-        self.hamburgerMenu.add_cascade(label="History",menu=self.historyMenu)
-        self.hamburgerMenu.add_cascade(label="Downloads",menu=self.downloadMenu)
-        self.hamburgerMenu.add_cascade(label="Bookmarks",menu=self.bookmarksMenu)
-        self.hamburgerMenu.add_separator()
-        self.hamburgerMenu.add_command(label="Find")
-        self.hamburgerMenu.add_cascade(label="Zoom",menu=self.zoomMenu)
-        self.hamburgerMenu.add_command(label="Settings",command=lambda: self.goToPage("flamingearth://settings"))
 
         self.menuButton = ttk.Menubutton(self.addressBar,text = "≡",menu = self.hamburgerMenu)
         self.menuButton.pack(side = "right")
@@ -62,14 +46,31 @@ class newFrame:
         self.refreshButton = ttk.Button(self.addressBar,text = "↺",command= self.refresh)
         self.refreshButton.pack(side="right")
 
-        self.gobutton = ttk.Button(self.addressBar,style="Accent.TButton",text = "Go",command=self.goToPage)
-        self.gobutton.pack(side="right")
+        ##self.gobutton = ttk.Button(self.addressBar,style="Accent.TButton",text = "Go",command=self.goToPage)
+        ##self.gobutton.pack(side="right")
 
         self.newtab = newTab.newTab(tabFrame,frameVar,startpage)
         self.browserView = browserTab.newTab(tabFrame,None,startpage,self.zoomMenu)
         self.settingsFrame = settings.Settings(tabFrame)
 
-        tabFrame.bind("<<LinkClicked>>",self.pageChanged) # Bind link clicked event to pageChanged method
+        self.hamburgerMenu.add_command(label="New tab")
+        self.hamburgerMenu.add_command(label="New window")
+        self.hamburgerMenu.add_separator()
+        self.hamburgerMenu.add_cascade(label="History",menu=self.historyMenu)
+        self.hamburgerMenu.add_cascade(label="Downloads",menu=self.downloadMenu)
+        self.hamburgerMenu.add_cascade(label="Bookmarks",menu=self.bookmarksMenu)
+        self.hamburgerMenu.add_separator()
+        self.hamburgerMenu.add_command(label="Find")
+        self.hamburgerMenu.add_cascade(label="Zoom",menu=self.zoomMenu)
+        self.hamburgerMenu.add_command(label="Settings",command=lambda: self.goToPage("flamingearth://settings"))
+
+        self.zoomMenu.add_command(label="Zoom level: 100%",state="disabled") # When creating the menu entry, do NOT set state="disabled"
+        self.zoomMenu.add_separator()
+        self.zoomMenu.add_command(label="+25%",command = lambda: self.browserView.zoomIn(self.zoomMenu,self.zoomButton))
+        self.zoomMenu.add_command(label="Reset",command = lambda: self.browserView.zoomReset(self.zoomMenu,self.zoomButton))
+        self.zoomMenu.add_command(label="-25%",command = lambda: self.browserView.zoomOut(self.zoomMenu,self.zoomButton))
+
+        self.browserView.browser.bind("<<UrlChanged>>",self.pageChanged) # Bind link clicked event to pageChanged method
     
     def goToPage(self,event=None): #Handle going to pages
         page = self.addressBar.get()
@@ -99,20 +100,18 @@ class newFrame:
                 self.settingsFrame.pack(fill="both", expand=True)
     
     def pageChanged(self,event):
-        self.currentAddress.set(event.url)
-        self.seesionurls.append(event.url)
+        newURL = self.browserView.browser.current_url
+        print("[TABFRAME] Page changed to:",newURL)
+        self.currentAddress.set(newURL)
+        self.seesionurls.append(newURL)
+        self.addressBar.update()
+        self.refreshButton.configure(label = "X")
+
+    def loadingDone(self):
+        self.refreshButton.configure(label = "↺")
 
     def goHome(self):
         self.goToPage(self.homepage)
     
     def refresh(self):
-        self.goToPage(self.homepage)
-    
-    def zoomIn(self):
-        print("zoom in")
-    
-    def zoomReset(self):
-        print("zoom reset")
-
-    def zoomOut(self):
-        print("zoom out")
+        self.browserView.refresh(self.homepage)

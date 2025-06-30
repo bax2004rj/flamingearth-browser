@@ -10,10 +10,10 @@ class newTab():
 
         # Setup browser object
         
-        self.browser = HtmlFrame(tab)
+        self.browser = HtmlFrame(tab,javascript_enabled = True)
         #self.browser.pack(fill="both", expand=True)
+
         self.zoom = 1
-        self.percentZoom = self.zoom*100
 
         self.cMenu = tkinter.Menu(self.browser)
         self.cMenu.add_command(label="Copy")
@@ -26,7 +26,6 @@ class newTab():
         self.cMenu.add_cascade(label="Zoom",menu=zoomMenu)
 
         self.browser.bind("<Button-3>",self.contextMenu)
-        self.browser.bind("<<UrlChanged>>",self.changeUrl)
     
     def showBrowserView(self):
         self.browser.pack(fill="both", expand=True)
@@ -53,31 +52,27 @@ class newTab():
     def goHome(self):
         self.browser.load_website(homePage)
 
-    def zoomIn(self):
+    def zoomIn(self,zoomMenu,zoomButton):
         self.zoom += .25
         self.percentZoom = self.zoom*100
-        self.zoomMenu.entryconfig(0,label = "Zoom level: %d%%"%(self.percentZoom))
-        self.browser.set_zoom(self.zoom)
-        self.zoomButton.pack(side = "right")
+        zoomMenu.entryconfig(1,label = "Zoom level: %d%%"%(self.percentZoom))
+        self.browser.configure(zoom=self.zoom)
+        zoomButton.pack(side = "right")
     
-    def zoomOut(self):
+    def zoomOut(self,zoomMenu,zoomButton):
         self.zoom -= .25
         self.percentZoom = self.zoom*100
-        self.zoomMenu.entryconfig(0,label = "Zoom level: %d%%"%(self.percentZoom))
-        self.browser.set_zoom(self.zoom)
-        self.zoomButton.pack(side = "right")
+        zoomMenu.entryconfig(1,label = "Zoom level: %d%%"%(self.percentZoom))
+        self.browser.configure(zoom=self.zoom)
+        zoomButton.pack(side = "right")
     
-    def zoomReset(self):
+    def zoomReset(self,zoomMenu,zoomButton):
         self.zoom = 1
         self.percentZoom = self.zoom*100
-        self.zoomMenu.entryconfig(0,label = "Zoom level: %d%%"%(self.percentZoom))
-        self.browser.set_zoom(self.zoom)
-        self.zoomButton.pack_forget()
+        zoomMenu.entryconfig(1,label = "Zoom level: %d%%"%(self.percentZoom))
+        self.browser.configure(zoom=self.zoom)
+        zoomButton.pack_forget()
 
     def changeUrl(self,title):
         self.browser.load_website(title)
     
-    #Send link clicked event to parent tabFrame
-    def linkClicked(self,event):
-        print("[BROWSERVIEW.PY] Link clicked:", event.url)
-        self.event_generate("<<LinkClicked>>", when="tail", url=event.url)

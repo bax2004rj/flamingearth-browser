@@ -12,6 +12,8 @@ class newFrame:
         self.sessionTitles = []
         self.sessionUrls = []
         self.tab_id = tabid
+        self.tabFrame = tabFrame
+        self.tabTitle = "New Tab"
 
         self.addressObject = tkinter.Frame(tabFrame)
         self.addressObject.pack(side = "top",fill = "x")
@@ -74,6 +76,7 @@ class newFrame:
 
         self.browserView.browser.bind("<<DownloadingResource>>",self.pageChanged) # Bind link clicked event to pageChanged method
         self.browserView.browser.bind("<<DoneLoading>>",self.loadingDone) # Bind page loaded event to loadingDone method
+        self.browserView.browser.bind("<<TitleChanged>>",self.changeTabTitle) # Bind URL changed event to pageChanged method
 
     def goToPage(self,event=None): #Handle going to pages
         page = self.addressBar.get()
@@ -106,24 +109,26 @@ class newFrame:
         newURL = self.browserView.browser.current_url
         print("[TABFRAME] Page changed to:",newURL)
         self.currentAddress.set(newURL)
-        self.seesionurls.append(newURL)
+        self.sessionUrls.append(newURL)
         self.addressBar.update()
-        self.refreshButton.configure(label = "X")
+        self.refreshButton.configure(text = "X")
 
     def loadingDone(self,event=None):
         self.sessionUrls.append(self.browserView.browser.current_url)
-        self.sessionTitles.append(self.browserView.browser.title())
+        self.sessionTitles.append(self.browserView.browser.title)
         fileHandler.history.append(self.browserView.browser.current_url)
         fileHandler.historyTimeAccessed.append(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-        fileHandler.bookmarks.append(self.browserView.browser.current_url)
-        self.refreshButton.configure(label = "↺")
+        self.refreshButton.configure(text = "↺")
+        self.refreshButton.update()
+        self.changeTabTitle(None,True, self.browserView.browser.title) # Change the tab title to the current page title
 
     def changeTabTitle(self,event, IsFromCustomProtocol = False, CustomTitle = "Tab title"):
+        print("[TabFrame] Tab title event given")
         if not IsFromCustomProtocol:
-            newTitle = self.browserView.browser.title() # Get the current title from the browser
+            self.tabTitle = self.browserView.browser.title # Get the current title from the browser
         else :
-            newTitle = CustomTitle
-        self.tabFrame.event_generate("<<TabTitleChanged>>", data=newTitle, tabId= self.tabId) # Trigger the event with the new title
+            self.tabTitle = CustomTitle
+        self.tabFrame.event_generate("<<TabTitleChanged>>") # Trigger the event with the new title
     
     def goHome(self):
         self.goToPage(self.homepage)

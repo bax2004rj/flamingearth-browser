@@ -23,8 +23,10 @@ class main():
         self.tabObjects = []
         self.tabFrames = []
         self.tabVars = []
+        self.tabProcesses = []
         self.processCount = 0 
         self.homepage = "flamingearth://newtab"
+        self.app.bind("<<TabTitleChanged>>",self.tabEdit)
 
     def setDarkmode(self):
         if fileHandler.darkmode == True and fileHandler.tkinterTheme == "sv_ttk":
@@ -33,15 +35,27 @@ class main():
             sv_ttk.set_theme("light") # Enable lightmode
         
     def tabAdd(self,page = "http://www.google.com/"): # Create new tab in tabFrame module
-        newFrame = ttk.Frame(self.tabs)
-        newtab = self.tabs.add(newFrame,text="New tab")
+        newFrame = ttk.Frame(self.tabs)        
+        self.processCount += 1
+        newtab = self.tabs.add(newFrame,text="New tab") # Add new tab to the notebook
         self.tabVars.append(tkinter.StringVar(self.app,"New tab"))
         self.tabFrames.append(newFrame)
         self.tabObjects.append(newtab) # Formerly textVariable = self.tabVars[-1]
-        self.processCount += 1
-        self.tabFrame = tabFrame.newFrame(self.tabFrames[-1],self.tabVars[-1],self.homepage,self.processCount)
+        self.tabProcesses.append(tabFrame.newFrame(self.tabFrames[-1],self.tabVars[-1],self.homepage,self.processCount))
+
         print ("New tab generated (process id: %d)"% self.processCount)
-        
+
+    def tabEdit(self,event):
+        try:
+            ##event.widget.newTitle
+            frameID=self.tabFrames.index(event.widget)
+            print(frameID)
+            newTitle = self.tabProcesses[frameID].tabTitle
+            self.tabs.tab(event.widget, text=newTitle)  # event.data[0] is the new title
+            self.tabs.update()
+            print("[Main] Tab title successfully edited")
+        except Exception as e:
+            print(f"[Main] Error editing tab title: {e}")
 
 browser = main()
 browser.tabAdd()

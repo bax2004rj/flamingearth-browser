@@ -52,6 +52,8 @@ class newTab():
     def refresh(self,event=None):
         if self.loading:
             self.browser.stop()
+            self.loading = False # Create event to notify tabFrame that loading has stopped
+            self.browser.event_generate("<<DoneLoading>>")
         else:
             self.browser.load_website(self.browser.current_url)
     

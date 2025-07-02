@@ -6,7 +6,7 @@ crashHandling = True
 homePage = "https://www.google.com"
 
 class newTab():
-    def __init__(self,tab,stringVar,startpage,zoomMenu):
+    def __init__(self,tab,zoomMenu):
 
         # Setup browser object
         
@@ -14,6 +14,9 @@ class newTab():
         #self.browser.pack(fill="both", expand=True)
 
         self.zoom = 1
+        self.loading = False
+        self.browser.bind("<<DownloadingResource>>", self.isLoading)
+        self.browser.bind("<<DoneLoading>>", self.noLongerLoading)
 
         self.cMenu = tkinter.Menu(self.browser)
         self.cMenu.add_command(label="Copy")
@@ -46,8 +49,11 @@ class newTab():
         self.browser.load_website(self.page)
 
     
-    def refresh(self):
-        self.browser.load_website(self.page)
+    def refresh(self,event=None):
+        if self.loading:
+            self.browser.stop()
+        else:
+            self.browser.load_website(self.browser.current_url)
     
     def goHome(self):
         self.browser.load_website(homePage)
@@ -75,3 +81,9 @@ class newTab():
 
     def changeUrl(self,title):
         self.browser.load_website(title)
+
+    def isLoading(self,event):
+        self.loading = True
+    
+    def noLongerLoading(self,event):
+        self.loading = False

@@ -17,6 +17,7 @@ class newFrame:
 
         self.addressObject = tkinter.Frame(tabFrame)
         self.addressObject.pack(side = "top",fill = "x")
+
         
         self.currentAddress = tkinter.StringVar(tabFrame,value = startpage)
 
@@ -36,6 +37,10 @@ class newFrame:
 
         self.hamburgerMenu = tkinter.Menu(self.addressBar)
 
+        self.newtab = newTab.newTab(tabFrame,frameVar,startpage)
+        self.browserView = browserTab.newTab(tabFrame,self.zoomMenu)
+        self.settingsFrame = settings.Settings(tabFrame)
+
         self.menuButton = ttk.Menubutton(self.addressBar,text = "≡",menu = self.hamburgerMenu)
         self.menuButton.pack(side = "right")
 
@@ -47,15 +52,11 @@ class newFrame:
         self.homeButton = ttk.Button(self.addressBar,text = "⌂️",command = self.goHome)
         self.homeButton.pack(side = "right")
 
-        self.refreshButton = ttk.Button(self.addressBar,text = "↺",command= self.refresh)
+        self.refreshButton = ttk.Button(self.addressBar,text = "↺",command= self.browserView.refresh)
         self.refreshButton.pack(side="right")
 
         ##self.gobutton = ttk.Button(self.addressBar,style="Accent.TButton",text = "Go",command=self.goToPage)
         ##self.gobutton.pack(side="right")
-
-        self.newtab = newTab.newTab(tabFrame,frameVar,startpage)
-        self.browserView = browserTab.newTab(tabFrame,None,startpage,self.zoomMenu)
-        self.settingsFrame = settings.Settings(tabFrame)
 
         self.hamburgerMenu.add_command(label="New tab")
         self.hamburgerMenu.add_command(label="New window")
@@ -121,6 +122,7 @@ class newFrame:
         self.refreshButton.configure(text = "↺")
         self.refreshButton.update()
         self.changeTabTitle(None,True, self.browserView.browser.title) # Change the tab title to the current page title
+        print("[TABFRAME] Finished loading")
 
     def changeTabTitle(self,event, IsFromCustomProtocol = False, CustomTitle = "Tab title"):
         print("[TabFrame] Tab title event given")
@@ -133,5 +135,3 @@ class newFrame:
     def goHome(self):
         self.goToPage(self.homepage)
     
-    def refresh(self):
-        self.browserView.refresh(self.homepage)

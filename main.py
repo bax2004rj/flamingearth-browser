@@ -27,6 +27,7 @@ class main():
         self.processCount = 0 
         self.homepage = "flamingearth://newtab"
         self.app.bind("<<TabTitleChanged>>",self.tabEdit)
+        self.app.bind("<<NotebookTabClosed>>",self.checkToQuit)
 
     def setDarkmode(self):
         if fileHandler.darkmode == True and fileHandler.tkinterTheme == "sv_ttk":
@@ -56,7 +57,13 @@ class main():
             print("[Main] Tab title successfully edited")
         except Exception as e:
             print(f"[Main] Error editing tab title: {e}")
-
+    
+    def checkToQuit(self,event):
+        print("[Main] Tab closed event received")
+        if len(self.tabs.tabs()) == 0:
+            self.app.quit()
+        else:
+            print("[Main] There are ", len(self.tabs.tabs()), " tabs remaining")
 browser = main()
 browser.tabAdd()
 browser.app.mainloop()

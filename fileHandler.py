@@ -57,7 +57,7 @@ downloadSource = [] # Downloads source list
 
 
 def loadSettings():
-    global autodark, darkmode, history, historyDateAccessed, downloads, bookmarks, settingsFile, homepage, notifyForTabsOnQuit
+    global autodark, darkmode, history, historyDateAccessed, downloads, bookmarks, settingsFile, homepage, notifyForTabsOnQuit, tkinterTheme, displayBookmarks, newtabDisplayMode, newtabItems, browserFlags
     # Create appdata directory if it doesn't exist
     if not os.path.exists(appData):
         os.makedirs(appData)

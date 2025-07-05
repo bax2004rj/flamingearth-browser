@@ -119,7 +119,7 @@ class newFrame:
             elif subpage == "settings":
                 self.newtab.newTabFrame.pack_forget()
                 self.settingsFrame.settings_frame.pack(fill="both", expand=True)
-            self.refreshButton.configure(text = "↺")
+        self.refreshButton.configure(text = "↺")
 
     def pageChanged(self,event=None):
         oldUrl = self.currentAddress.get()
@@ -141,8 +141,8 @@ class newFrame:
         fileHandler.history.append(self.browserView.browser.current_url)
         fileHandler.historyTimeAccessed.append(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         self.refreshButton.configure(text = "↺")
-        self.refreshButton.update()
         self.changeTabTitle(None,True, self.browserView.browser.title) # Change the tab title to the current page title
+        self.doNotClearForwardHistory = False # Reset the doNotClearForwardHistory flag
         print("[TABFRAME] Finished loading")
 
     def changeTabTitle(self,event, IsFromCustomProtocol = False, CustomTitle = "Tab title"):
@@ -162,6 +162,7 @@ class newFrame:
         print(self.sessionBacks, " ", self.sessionUrls[self.sessionBacks])
         self.sessionBacks -= 1
         self.forwardbutton.configure(state="normal") # Enable forward button
+        self.doNotClearForwardHistory = True # Do not clear forward history when going back
         if abs(self.sessionBacks) >= len(self.sessionUrls):
             self.backbutton.configure(state="disabled")
             self.backbutton.update()
@@ -170,16 +171,20 @@ class newFrame:
         self.goToPage(page = self.sessionUrls[self.sessionBacks + 2],doNotAddToSessionHistory=True)
         print(self.sessionBacks + 2, " ", self.sessionUrls[self.sessionBacks + 2])
         self.sessionBacks += 1
-        if self.sessionBacks <= -2:
+        self.doNotClearForwardHistory = True
+        if self.sessionBacks >= -2:
             self.backbutton.configure(state="normal")
             self.backbutton.update()
             self.forwardbutton.configure(state="disabled")
             self.forwardbutton.update()
+        if abs(self.sessionBacks) <= len(self.sessionUrls):
+            self.backbutton.configure(state="normal")
+            self.backbutton.update()
 
     def ClearForwardHistory(self):
-        forwardHistoryPoint =len(self.sessionUrls)+self.sessionBacks+1
+        forwardHistoryPoint =len(self.sessionUrls)+self.sessionBacks+2
         print("[TabFrame] Forward History Point ", forwardHistoryPoint)
-        ## self.sessionUrls = self.sessionUrls[:forwardHistoryPoint]
+        self.sessionUrls = self.sessionUrls[:forwardHistoryPoint]
         self.sessionBacks = -2
         self.forwardbutton.configure(state="disabled")
         self.forwardbutton.update()
@@ -189,6 +194,6 @@ class newFrame:
         self.sessionUrls.append(self.addressBar.get())
         self.sessionTitles.append(self.tabTitle)
         print("[TabFrame] Added to session history:", self.browserView.browser.current_url)
-        if self.sessionBacks != -2:
+        if abs(self.sessionBacks) <= len(self.sessionUrls):
             self.backbutton.configure(state="normal")
             self.backbutton.update()

@@ -11,7 +11,7 @@ class newFrame:
         self.homepage = startpage
         self.sessionTitles = []
         self.sessionUrls = []
-        self.sessionBacks = -2
+        self.sessionMenuNumber = tkinter.IntVar(tabFrame,-2)
         self.doNotClearForwardHistory = False
         self.tab_id = tabid
         self.tabFrame = tabFrame
@@ -29,6 +29,10 @@ class newFrame:
         self.forwardbutton.pack(side = "left")
         self.backbutton.configure(state="disabled") # Disable back button
         self.forwardbutton.configure(state="disabled")
+
+        self.backMenu = tkinter.Menu(self.addressObject)
+        self.backbutton.bind("<Button-3>",self.showBackMenu)
+        self.backbutton.bind("<Button-3>",self.showBackMenu)
 
         self.addressBar = ttk.Combobox(self.addressObject,textvariable = self.currentAddress,values = self.sessionUrls)
         self.addressBar.bind("<Return>",self.goToPage)
@@ -158,42 +162,70 @@ class newFrame:
         self.ClearForwardHistory()
     
     def back(self,event=None):
-        self.goToPage(page = self.sessionUrls[self.sessionBacks],doNotAddToSessionHistory=True)
-        print(self.sessionBacks, " ", self.sessionUrls[self.sessionBacks])
-        self.sessionBacks -= 1
+        sessionBacks = self.sessionMenuNumber.get()
+        self.goToPage(page = self.sessionUrls[sessionBacks],doNotAddToSessionHistory=True)
+        print(sessionBacks, " ", self.sessionUrls[sessionBacks])
+        self.sessionMenuNumber.set(sessionBacks - 1)
         self.forwardbutton.configure(state="normal") # Enable forward button
         self.doNotClearForwardHistory = True # Do not clear forward history when going back
-        if abs(self.sessionBacks) >= len(self.sessionUrls):
+        if abs(sessionBacks) >= len(self.sessionUrls):
             self.backbutton.configure(state="disabled")
             self.backbutton.update()
 
     def forward(self,event=None):
-        self.goToPage(page = self.sessionUrls[self.sessionBacks + 2],doNotAddToSessionHistory=True)
-        print(self.sessionBacks + 2, " ", self.sessionUrls[self.sessionBacks + 2])
-        self.sessionBacks += 1
+        sessionBacks = self.sessionMenuNumber.get()
+        self.goToPage(page = self.sessionUrls[sessionBacks + 2],doNotAddToSessionHistory=True)
+        print(sessionBacks + 2, " ", self.sessionUrls[sessionBacks + 2])
+        self.sessionMenuNumber.set(sessionBacks + 1)
         self.doNotClearForwardHistory = True
-        if self.sessionBacks >= -2:
+        if sessionBacks >= -2:
             self.backbutton.configure(state="normal")
             self.backbutton.update()
             self.forwardbutton.configure(state="disabled")
             self.forwardbutton.update()
-        if abs(self.sessionBacks) <= len(self.sessionUrls):
+        if abs(sessionBacks) <= len(self.sessionUrls):
             self.backbutton.configure(state="normal")
             self.backbutton.update()
 
     def ClearForwardHistory(self):
-        forwardHistoryPoint =len(self.sessionUrls)+self.sessionBacks+2
+        sessionBacks = self.sessionMenuNumber.get()
+        forwardHistoryPoint =len(self.sessionUrls)+sessionBacks+2
         print("[TabFrame] Forward History Point ", forwardHistoryPoint)
         self.sessionUrls = self.sessionUrls[:forwardHistoryPoint]
-        self.sessionBacks = -2
+        self.sessionMenuNumber.set(-2)
         self.forwardbutton.configure(state="disabled")
         self.forwardbutton.update()
         print("[TabFrame] Forward history cleared")
 
     def AddToSessionHistory(self):
+        sessionBacks = self.sessionMenuNumber.get()
         self.sessionUrls.append(self.addressBar.get())
         self.sessionTitles.append(self.tabTitle)
+        self.backMenu.add_radiobutton(label=self.tabTitle, command=self.jumpToPage, variable=self.sessionMenuNumber,value = str(self.sessionTitles.index(self.tabTitle)-2))
         print("[TabFrame] Added to session history:", self.browserView.browser.current_url)
-        if abs(self.sessionBacks) <= len(self.sessionUrls):
+        if abs(sessionBacks) <= len(self.sessionUrls):
             self.backbutton.configure(state="normal")
+            self.backbutton.update()
+    
+    def showBackMenu(self,event):
+        try:
+            self.backMenu.tk_popup(event.x_root,event.y_root,0)
+        finally:
+             self.backMenu.grab_release()
+
+    def jumpToPage(self):
+        sessionBacks = self.sessionMenuNumber.get()
+        self.goToPage(page = self.sessionUrls[sessionBacks],doNotAddToSessionHistory=True)
+        print(sessionBacks, " ", self.sessionUrls[sessionBacks])
+        self.doNotClearForwardHistory = True # Do not clear forward history when going back
+        if sessionBacks >= -2:
+            self.backbutton.configure(state="normal")
+            self.backbutton.update()
+            self.forwardbutton.configure(state="disabled")
+            self.forwardbutton.update()
+        if abs(sessionBacks) <= len(self.sessionUrls):
+            self.backbutton.configure(state="normal")
+            self.backbutton.update()
+        if abs(sessionBacks) >= len(self.sessionUrls):
+            self.backbutton.configure(state="disabled")
             self.backbutton.update()

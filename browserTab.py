@@ -3,7 +3,6 @@ from tkinter import ttk
 from tkinterweb import HtmlFrame
 
 crashHandling = True
-homePage = "https://www.google.com"
 
 class newTab():
     def __init__(self,tab,zoomMenu):
@@ -57,9 +56,6 @@ class newTab():
         else:
             self.browser.load_website(self.browser.current_url)
     
-    def goHome(self):
-        self.browser.load_website(homePage)
-
     def zoomIn(self,zoomMenu,zoomButton):
         self.zoom += .25
         self.percentZoom = self.zoom*100

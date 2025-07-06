@@ -25,17 +25,6 @@ class customTab(ttk.Notebook):
     ## Bind newtab to command, since *args and **kwargs doesn't like having a "command" parameter next to it
     def bind_newtab(self,command):
         self.newtab.configure(command=command)
-    
-    def on_close_press(self, event):
-        """Called when the button is pressed over the close button"""
-
-        element = self.identify(event.x, event.y)
-
-        if "close" in element:
-            index = self.index("@%d,%d" % (event.x, event.y))
-            self.state(['pressed'])
-            self._active = index
-            return "break"
 
     def on_close_press(self, event):
         """Called when the button is pressed over the close button"""

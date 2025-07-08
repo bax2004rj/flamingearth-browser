@@ -31,8 +31,6 @@ class newTab():
     
     def showBrowserView(self):
         self.browser.pack(fill="both", expand=True)
-        self.browser.on_url_change(self.changeUrl)
-        self.browser.enable_crash_prevention(isenabled=crashHandling)
     
     def hideBrowserView(self):
         self.browser.pack_forget()

@@ -17,15 +17,9 @@ class newFrame:
         self.tab_id = tabid
         self.tabFrame = tabFrame
         self.tabTitle = "New Tab"
-        self.findSelection = 0
-        self.totalItems = 0
-        self.ignoreCaseVar = tkinter.BooleanVar(tabFrame,False)
-        self.highlightVar = tkinter.BooleanVar(tabFrame,False)
-        self.findMenuVisible = False
 
         self.addressObject = tkinter.Frame(tabFrame)
         self.addressObject.pack(side = "top",fill = "x")
-
         
         self.currentAddress = tkinter.StringVar(tabFrame,value = startpage)
 
@@ -57,7 +51,7 @@ class newFrame:
         self.hamburgerMenu = tkinter.Menu(self.addressBar)
 
         self.newtab = newTab.newTab(tabFrame,frameVar,startpage)
-        self.browserView = browserTab.newTab(tabFrame,self.zoomMenu)
+        self.browserView = browserTab.newTab(tabFrame,self.zoomMenu,self.back,self.forward)
         self.settingsFrame = settings.Settings(tabFrame)
 
         self.menuButton = ttk.Menubutton(self.addressBar,text = "≡",menu = self.hamburgerMenu)
@@ -84,7 +78,7 @@ class newFrame:
         self.hamburgerMenu.add_cascade(label="Downloads",menu=self.downloadMenu)
         self.hamburgerMenu.add_cascade(label="Bookmarks",menu=self.bookmarksMenu)
         self.hamburgerMenu.add_separator()
-        self.hamburgerMenu.add_command(label="Find",command=self.toggleFindBar, state="disabled")
+        self.hamburgerMenu.add_command(label="Find",command=self.browserView.toggleFindBar, state="disabled")
         self.hamburgerMenu.add_cascade(label="Zoom",menu=self.zoomMenu)
         self.hamburgerMenu.add_command(label="Settings",command=lambda: self.goToPage("flamingearth://settings"))
 
@@ -97,26 +91,6 @@ class newFrame:
         self.browserView.browser.bind("<<DownloadingResource>>",self.pageChanged) # Bind link clicked event to pageChanged method
         self.browserView.browser.bind("<<DoneLoading>>",self.loadingDone) # Bind page loaded event to loadingDone method
         self.browserView.browser.bind("<<TitleChanged>>",self.changeTabTitle) # Bind URL changed event to pageChanged method
-        
-        self.findMenu = tkinter.Frame(self.tabFrame)
-        self.findLabel = ttk.Label(self.findMenu,text="Find:")
-        self.findLabel.pack(side="left")
-        self.findSearchBar = ttk.Entry(self.findMenu)
-        self.findSearchBar.pack(side="left")
-        self.ignoreCaseSwitch = ttk.Checkbutton(self.findMenu,text="Ignore case",onvalue=True,offvalue=False,variable=self.ignoreCaseVar, command=self.find)
-        self.ignoreCaseSwitch.pack(side="left")
-        self.highlightSwitch = ttk.Checkbutton(self.findMenu,text="Highlight all items",onvalue=True,offvalue=False,variable=self.highlightVar, command=self.find)
-        self.highlightSwitch.pack(side="left")
-        self.nextButton = ttk.Button(self.findMenu,text="↓",command= self.findNext)
-        self.nextButton.pack(side="left")
-        self.previousButton = ttk.Button(self.findMenu,text="↑",command=self.findPrevious)
-        self.previousButton.pack(side="left")
-        self.itemsFoundLabel = ttk.Label(self.findMenu,text="No items found")
-        self.itemsFoundLabel.pack(side="left")
-        self.findSearchBar.bind("<Return>",self.find())
-        self.findSearchBar.bind("<KeyRelease>",self.find()) # Start searching while typing
-        self.closeFindButton = ttk.Button(self.findMenu,text="x",command=self.toggleFindBar)
-        self.closeFindButton.pack(side="right")
 
         self.goToPage(page = startpage)
 
@@ -224,7 +198,7 @@ class newFrame:
         print("[TabFrame] Forward History Point ", forwardHistoryPoint)
         self.sessionUrls = self.sessionUrls[:forwardHistoryPoint]
         self.sessionBacks.set(-2)
-        self.sessionMenuNumber.set(0)
+        self.sessionMenuNumber.set(len(self.sessionTitles)-1)
         self.forwardbutton.configure(state="disabled")
         self.forwardbutton.update()
         self.backMenu.delete(0, 'end')  # Clear and add all items to the back menu
@@ -243,6 +217,7 @@ class newFrame:
     def finishAddingToSessionHistory(self):
         self.sessionTitles.append(self.tabTitle)
         self.backMenu.add_radiobutton(label=self.tabTitle, command=self.jumpToPage, variable=self.sessionMenuNumber,value = self.sessionTitles.index(self.tabTitle))
+        self.sessionMenuNumber.set(len(self.sessionTitles)-1) # Set the current session menu number to the last item
         print("[TabFrame] Finished adding to session history:", self.sessionTitles[-1], " ", self.sessionUrls[-1])
 
     def showBackMenu(self,event):
@@ -268,39 +243,3 @@ class newFrame:
             self.backbutton.configure(state="disabled")
             self.backbutton.update()
         self.sessionBacks.set(0-(len(self.sessionTitles)-self.sessionMenuNumber.get()))
-    
-    def toggleFindBar(self):
-        if not self.findMenuVisible:
-             self.findMenu.pack(side="bottom", fill="x")
-             self.findMenuVisible = True
-        else:
-             self.findMenu.pack_forget()
-             self.findMenuVisible = False
-            
-    def find(self):
-        searchTerm = self.findSearchBar.get()
-        ignoreCase = self.ignoreCaseVar.get()
-        highlightAll = self.highlightVar.get()
-        self.totalItems =self.browserView.browser.find_text(searchTerm,select= self.findSelection, ignore_case=ignoreCase, highlight_all=highlightAll)
-        if self.totalItems == 0:
-            self.itemsFoundLabel.configure(text="No items found")
-            self.findSelection = 0
-        elif highlightAll:
-            self.itemsFoundLabel.configure(text=f"{self.totalItems} items highlighted")
-            self.findSelection = 0
-        else:
-            self.itemsFoundLabel.configure(text=f"{self.findSelection} of {self.totalItems} found")
-
-    def findNext(self):
-        if self.findSelection < self.totalItems:
-            self.findSelection += 1
-        else:
-            self.findSelection = 1
-        self.find()
-    
-    def findPrevious(self):
-        if self.findSelection <= 1:
-            self.findSelection = self.totalItems
-        else:
-            self.findSelection -= 1
-        self.find()

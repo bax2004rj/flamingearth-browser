@@ -5,11 +5,15 @@ import sv_ttk
 import tabFrame
 import customTab
 import fileHandler
+from PIL import ImageTk as ImageTK
 
 class main():
     def __init__(self):
         fileHandler.loadSettings() # Read settings from file
- 
+        fileHandler.loadHistory() # Read history from file
+        fileHandler.loadBookmarks() # Read bookmarks from file
+        fileHandler.loadDownloads() # Read downloads from file
+    
         self.app = tkinter.Tk()
         self.setDarkmode() # Set dark mode
         self.app.winfo_toplevel().title("Flamingearth Browser v1.0a")
@@ -20,6 +24,7 @@ class main():
         self.tabs.pack(fill="both",expand=1)
         self.tabs.bind_newtab(self.tabAdd)
 
+        self.tabImage = ImageTK.PhotoImage(file=fileHandler.noIcon) # Default tab icon
         self.tabObjects = []
         self.tabFrames = []
         self.tabVars = []
@@ -38,7 +43,7 @@ class main():
     def tabAdd(self,page = "http://www.google.com/"): # Create new tab in tabFrame module
         newFrame = ttk.Frame(self.tabs)        
         self.processCount += 1
-        newtab = self.tabs.add(newFrame,text="New tab") # Add new tab to the notebook
+        newtab = self.tabs.add(newFrame,text="New tab",image=self.tabImage,compound="left") # Add new tab to the notebook
         self.tabVars.append(tkinter.StringVar(self.app,"New tab"))
         self.tabFrames.append(newFrame)
         self.tabObjects.append(newtab) # Formerly textVariable = self.tabVars[-1]
@@ -52,7 +57,9 @@ class main():
             frameID=self.tabFrames.index(event.widget)
             print(frameID)
             newTitle = self.tabProcesses[frameID].tabTitle
-            self.tabs.tab(event.widget, text=newTitle)  # event.data[0] is the new title
+            newIcon = self.tabProcesses[frameID].tabIcon
+            print(newIcon)
+            self.tabs.tab(event.widget, text=newTitle, image = newIcon)  # event.data[0] is the new title
             self.tabs.update()
             print("[Main] Tab title successfully edited")
         except Exception as e:
@@ -64,6 +71,18 @@ class main():
             self.app.quit()
         else:
             print("[Main] There are ", len(self.tabs.tabs()), " tabs remaining")
-browser = main()
-browser.tabAdd()
-browser.app.mainloop()
+
+    def __enter__(self):
+        print ("Starting browser...")
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print ("Exiting...")
+        fileHandler.saveSettings()
+        fileHandler.saveHistory()
+        fileHandler.saveBookmarks()
+        fileHandler.saveDownloads()
+
+with main() as browser:
+    browser.tabAdd()
+    browser.app.mainloop()

@@ -10,7 +10,7 @@ class customTab(ttk.Notebook):
         ## Custom notebook with close buttons
         if not self.__initialized:
             self.__initialize_custom_style()
-            self.__inititialized = True
+            self.__initialized = True
         kwargs["style"] = "CustomNotebook"
         ttk.Notebook.__init__(self, *args, **kwargs)
         self._active = None

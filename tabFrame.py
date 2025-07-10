@@ -5,6 +5,8 @@ import newTab
 import browserTab
 import settings
 import fileHandler
+from PIL import ImageTk as ImageTK
+import urllib
 
 class newFrame:
     def __init__(self,tabFrame,frameVar,startpage,tabid=0):
@@ -17,6 +19,8 @@ class newFrame:
         self.tab_id = tabid
         self.tabFrame = tabFrame
         self.tabTitle = "New Tab"
+        self.tabIconURL = None
+        self.tabIcon = ImageTK.PhotoImage(file=fileHandler.noIcon)
 
         self.addressObject = tkinter.Frame(tabFrame)
         self.addressObject.pack(side = "top",fill = "x")
@@ -154,12 +158,22 @@ class newFrame:
             self.finishAddingToSessionHistory()
         print("[TABFRAME] Finished loading")
 
-    def changeTabTitle(self,event, IsFromCustomProtocol = False, CustomTitle = "Tab title"):
+    def changeTabTitle(self,event, IsFromCustomProtocol = False, CustomTitle = "Tab title", customIcon = None):
         print("[TabFrame] Tab title event given")
         if not IsFromCustomProtocol:
             self.tabTitle = self.browserView.browser.title # Get the current title from the browser
+            self.tabIconURL = self.browserView.browser.icon # Get the current icon from the browser        
+            if self.tabIconURL is not None:
+                try:
+                    image_data = urllib.request.urlopen(self.tabIconURL).read()
+                    fileHandler.saveIcon(image_data)
+                    self.tabIcon = ImageTK.PhotoImage(file=fileHandler.historyIconsFile)
+                except Exception as e:
+                    print("[TabFrame] Error loading icon from URL:", e)
+                    self.tabIcon = ImageTK.PhotoImage(file=fileHandler.noIcon)
         else :
             self.tabTitle = CustomTitle
+            self.tabIcon = customIcon
         self.tabFrame.event_generate("<<TabTitleChanged>>") # Trigger the event with the new title
     
     def goHome(self,event=None):

@@ -125,25 +125,25 @@ class newTab():
         searchTerm = self.findTextVar.get()
         ignoreCase = self.ignoreCaseVar.get()
         highlightAll = self.highlightVar.get()
-        self.foundItems =self.browser.find_text(searchTerm,select= self.findSelection, ignore_case=ignoreCase, highlight_all=highlightAll)
+        self.foundItems =self.browser.find_text(searchTerm,select= self.findSelection, ignore_case=ignoreCase, highlight_all=highlightAll) # type: ignore
         if self.foundItems == 0:
             self.itemsFoundLabel.configure(text="No items found")
             self.findSelection = 1
-        elif self.findSelection > self.foundItems:
+        elif self.findSelection > self.foundItems: # type: ignore
             self.findSelection = self.foundItems
         else:
             self.itemsFoundLabel.configure(text=f"{self.findSelection} of {self.foundItems} found")
 
     def findNext(self):
-        if self.findSelection < self.foundItems:
-            self.findSelection += 1
+        if self.findSelection < self.foundItems: # type: ignore
+            self.findSelection += 1 # type: ignore
         else:
             self.findSelection = 1
         self.find()
     
     def findPrevious(self):
-        if self.findSelection <= 1:
+        if self.findSelection <= 1: # type: ignore
             self.findSelection = self.foundItems
         else:
-            self.findSelection -= 1
+            self.findSelection -= 1 # type: ignore
         self.find()

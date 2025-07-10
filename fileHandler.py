@@ -22,7 +22,8 @@ else:  # Fallback for other OS types
 # Settings file
 settingsFile = os.path.join(appData,"settings.json") 
 # history file
-historyFile = os.path.join(appData,"history.json") 
+historyFile = os.path.join(appData,"history.json")
+historyIconsFile = os.path.join(appData,"historyIcons") 
 # bookmarks file
 bookmarksFile = os.path.join(appData,"bookmarks.json") 
 bookmarksIconsFile = os.path.join(appData,"bookmarksIcons")
@@ -46,7 +47,9 @@ newtabItems = 8
 browserFlags = []
 
 homepage = "flamingearth://newtab"
-history = [] # History list
+historyURL = [] # History URL list
+historyTitles = [] # History titles list
+historyIcons = [] # History icons list (locations to icon files)
 historyTimeAccessed = [] # History date accessed list
 bookmarks = [] # Bookmarks url list
 bookmarksTitles = [] # Bookmarks titles list
@@ -107,8 +110,10 @@ def loadHistory():
             historyDateAccessed = historyJson.get('historyDateAccessed', [])
     else:
         historyFileOut = {
-            'history': history,
-            'historyDateAccessed': historyDateAccessed,
+            'historyURL': historyURL,
+            'historyTitles': historyTitles,
+            'historyIcons': historyIcons,
+            'historyTimeAccessed': historyTimeAccessed,
         }
         with open(historyFile, 'w') as file:
             json.dump(historyFileOut, file, indent=4)
@@ -146,3 +151,59 @@ def loadDownloads():
         }
         with open(downloadsFile, 'w') as file:
             json.dump(downloadsFileOut, file, indent=4)
+
+def saveSettings():
+    global autodark, darkmode, settingsFile, homepage, notifyForTabsOnQuit, tkinterTheme, displayBookmarks, newtabDisplayMode, newtabItems, browserFlags
+    settings = {
+        'autodark': autodark,
+        'darkmode': darkmode,
+        'tkinterTheme': tkinterTheme,
+        'displayBookmarks': displayBookmarks,
+        'notifyForTabsOnQuit': notifyForTabsOnQuit,
+        'newtabDisplayMode': newtabDisplayMode,
+        'newtabItems': newtabItems,
+        'browserFlags': browserFlags,
+        'homepage': homepage
+    }
+    with open(settingsFile, 'w') as file:
+        json.dump(settings, file, indent=4)
+    print("[FILEHANDLER] Settings saved successfully.")
+
+def saveHistory():
+    global historyFile,historyURL,historyTitles,historyIcons,historyTimeAccessed
+    historyFileOut = {
+        'historyURL': historyURL,
+        'historyTitles': historyTitles,
+        'historyIcons': historyIcons,
+        'historyTimeAccessed': historyTimeAccessed,
+    }
+    with open(historyFile, 'w') as file:
+        json.dump(historyFileOut, file, indent=4)
+
+def saveBookmarks():
+    global bookmarksFile,bookmarks,bookmarksTitles,bookmarksIcons
+    bookmarksFileOut = {
+        'bookmarks': bookmarks,
+        'bookmarksTitles': bookmarksTitles,
+        'bookmarksIcons': bookmarksIcons,
+    }
+    with open(bookmarksFile, 'w') as file:
+        json.dump(bookmarksFileOut, file, indent=4)
+
+def saveDownloads():
+    global downloadsFile,downloads,downloadTime,downloadSource
+    downloadsFileOut = {
+        'downloads': downloads,
+        'downloadTitles': downloadTime,
+        'downloadIcons': downloadSource,
+    }
+    with open(downloadsFile, 'w') as file:
+        json.dump(downloadsFileOut, file, indent=4)
+
+def saveIcon(image_data):
+    global historyIconsFile
+    saveLocation = os.path.join(historyIconsFile,f"{len(historyIcons)}.png")
+    with open(saveLocation, 'wb') as icon_file:
+        icon_file.write(image_data)
+    historyIcons.append(saveLocation)
+    print("[FILEHANDLER] Icon saved successfully.")

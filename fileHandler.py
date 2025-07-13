@@ -102,12 +102,14 @@ def loadSettings():
            print("[FILEHANDLER] Dark mode is set to:", darkmode)
     
 def loadHistory():
-    global historyFile,history, historyDateAccessed
+    global historyFile,historyURL,historyTitles,historyIcons, historyTimeAccessed
     if os.path.exists(historyFile):
         with open(historyFile, 'r') as file:
             historyJson = json.load(file)
-            history = historyJson.get('history', [])
-            historyDateAccessed = historyJson.get('historyDateAccessed', [])
+            historyURL = historyJson.get('historyURL', [])
+            historyTitles = historyJson.get('historyTitles',[])
+            historyIcons = historyJson.get('historyIcons', [])
+            historyTimeAccessed = historyJson.get('historyTimeAccessed', [])
     else:
         historyFileOut = {
             'historyURL': historyURL,
@@ -205,5 +207,6 @@ def saveIcon(image_data):
     saveLocation = os.path.join(historyIconsFile,f"{len(historyIcons)}.png")
     with open(saveLocation, 'wb') as icon_file:
         icon_file.write(image_data)
-    historyIcons.append(saveLocation)
     print("[FILEHANDLER] Icon saved successfully.")
+    return saveLocation
+    

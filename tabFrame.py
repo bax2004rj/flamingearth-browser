@@ -6,21 +6,23 @@ import browserTab
 import settings
 import fileHandler
 from PIL import ImageTk as ImageTK
-import urllib
+import urllib.request
 
 class newFrame:
-    def __init__(self,tabFrame,frameVar,startpage,tabid=0):
+    def __init__(self,tabFrame,frameVar,startpage,tabid=0,saveHistory=True):
         self.homepage = startpage
         self.sessionTitles = []
         self.sessionUrls = []
         self.sessionBacks = tkinter.IntVar(tabFrame,-2)
         self.sessionMenuNumber = tkinter.IntVar(tabFrame, 0)
         self.doNotClearForwardHistory = False
+        self.saveHistory = saveHistory
         self.tab_id = tabid
         self.tabFrame = tabFrame
         self.tabTitle = "New Tab"
         self.tabIconURL = None
-        self.tabIcon = ImageTK.PhotoImage(file=fileHandler.noIcon)
+        self.iconFile = fileHandler.noIcon
+        self.tabIcon = ImageTK.PhotoImage(file=self.iconFile)
 
         self.addressObject = tkinter.Frame(tabFrame)
         self.addressObject.pack(side = "top",fill = "x")
@@ -98,7 +100,7 @@ class newFrame:
 
         self.goToPage(page = startpage)
 
-    def goToPage(self,event=None,page = None, doNotAddToSessionHistory = False): #Handle going to pages
+    def goToPage(self,event=None,page = None, doNotAddToSessionHistory = False, doNotAddToHistory = False): #Handle going to page
         if page == None:
             page = self.addressBar.get()
         self.setAddressBar(page) # Set the address bar to the new URL
@@ -149,8 +151,15 @@ class newFrame:
     
     def loadingDone(self,event=None):
         print(self.sessionUrls)
-        fileHandler.history.append(self.browserView.browser.current_url)
-        fileHandler.historyTimeAccessed.append(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        try:
+            latestHistoryItem = fileHandler.historyURL[-1]
+        except IndexError:
+            latestHistoryItem = ''
+        if self.saveHistory and latestHistoryItem != self.browserView.browser.current_url:
+            fileHandler.historyURL.append(self.browserView.browser.current_url)
+            fileHandler.historyTitles.append(self.tabTitle)
+            fileHandler.historyIcons.append(self.iconFile)
+            fileHandler.historyTimeAccessed.append(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         self.refreshButton.configure(text = "↺")
         self.changeTabTitle(None,True, self.browserView.browser.title) # Change the tab title to the current page title
         self.doNotClearForwardHistory = False # Reset the doNotClearForwardHistory flag
@@ -158,22 +167,32 @@ class newFrame:
             self.finishAddingToSessionHistory()
         print("[TABFRAME] Finished loading")
 
-    def changeTabTitle(self,event, IsFromCustomProtocol = False, CustomTitle = "Tab title", customIcon = None):
+    def changeTabTitle(self,event, IsFromCustomProtocol = False, CustomTitle = "Tab title", customIcon = fileHandler.noIcon): #Update tab titles. Custom icon should be a string containing a location where the icon is (usually supplied by fileHandler)
         print("[TabFrame] Tab title event given")
-        if not IsFromCustomProtocol:
-            self.tabTitle = self.browserView.browser.title # Get the current title from the browser
+        newTabTitle = self.browserView.browser.title
+        if (not IsFromCustomProtocol) and newTabTitle != self.tabTitle:
+            self.tabTitle =  newTabTitle# Get the current title from the browser
             self.tabIconURL = self.browserView.browser.icon # Get the current icon from the browser        
-            if self.tabIconURL is not None:
+            if not self.tabIconURL == None:
                 try:
-                    image_data = urllib.request.urlopen(self.tabIconURL).read()
-                    fileHandler.saveIcon(image_data)
-                    self.tabIcon = ImageTK.PhotoImage(file=fileHandler.historyIconsFile)
+                    self.image_data = urllib.request.urlopen(self.tabIconURL).read()
+                    self.iconFile = fileHandler.saveIcon(self.image_data)
+                    self.tabIcon = ImageTK.PhotoImage(file=self.iconFile)
+                    print("[TabFrame] New icon set successfully")
                 except Exception as e:
                     print("[TabFrame] Error loading icon from URL:", e)
+                    self.iconFile = fileHandler.noIcon
                     self.tabIcon = ImageTK.PhotoImage(file=fileHandler.noIcon)
-        else :
+            else:
+                self.iconFile = fileHandler.noIcon
+                self.tabIcon = ImageTK.PhotoImage(file=fileHandler.noIcon)
+                print("[TabFrame] Tab icon URL not set")
+        elif IsFromCustomProtocol:
             self.tabTitle = CustomTitle
-            self.tabIcon = customIcon
+            self.iconFile = customIcon
+            self.tabIcon = ImageTK.PhotoImage(file=self.iconFile)
+        else:
+            print("[TabFrame] Tab title did not need to update")
         self.tabFrame.event_generate("<<TabTitleChanged>>") # Trigger the event with the new title
     
     def goHome(self,event=None):

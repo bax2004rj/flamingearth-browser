@@ -1,5 +1,6 @@
 import tkinter
 from tkinter import ttk
+import tkinter.messagebox
 import sv_ttk
 # Other imports
 import tabFrame
@@ -33,6 +34,7 @@ class main():
         self.homepage = "flamingearth://newtab"
         self.app.bind("<<TabTitleChanged>>",self.tabEdit)
         self.app.bind("<<NotebookTabClosed>>",self.checkToQuit)
+        self.app.protocol("WM_DELETE_WINDOW",self.onQuit)
 
     def setDarkmode(self):
         if fileHandler.darkmode == True and fileHandler.tkinterTheme == "sv_ttk":
@@ -72,12 +74,19 @@ class main():
         else:
             print("[Main] There are ", len(self.tabs.tabs()), " tabs remaining")
 
+    def onQuit(self):
+        print ("Exiting...")
+        openTabs = len(self.tabs.tabs())
+        if fileHandler.notifyForTabsOnQuit != -1 and openTabs >= fileHandler.notifyForTabsOnQuit:
+            continueClosing = tkinter.messagebox.askyesno("Confirm close", f"There are still {openTabs} tabs open. Are you sure you want to continue closing?")
+            if continueClosing == True:
+                self.app.destroy()
+
     def __enter__(self):
         print ("Starting browser...")
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        print ("Exiting...")
         fileHandler.saveSettings()
         fileHandler.saveHistory()
         fileHandler.saveBookmarks()

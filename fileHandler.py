@@ -210,3 +210,11 @@ def saveIcon(image_data):
     print("[FILEHANDLER] Icon saved successfully.")
     return saveLocation
     
+def clearHistory():
+    global historyURL, historyTitles, historyIcons, historyTimeAccessed
+    historyURL.clear()
+    historyTitles.clear()
+    historyIcons.clear()
+    historyTimeAccessed.clear()
+    saveHistory()
+    print("[FILEHANDLER] History cleared successfully.")

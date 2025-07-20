@@ -5,6 +5,7 @@ import newTab
 import browserTab
 import settings
 import fileHandler
+import history
 from PIL import ImageTk as ImageTK
 import urllib.request
 
@@ -59,6 +60,7 @@ class newFrame:
         self.newtab = newTab.newTab(tabFrame,frameVar,startpage)
         self.browserView = browserTab.newTab(tabFrame,self.zoomMenu,self.back,self.forward)
         self.settingsFrame = settings.Settings(tabFrame)
+        self.historyFrame = history.History(tabFrame)
 
         self.menuButton = ttk.Menubutton(self.addressBar,text = "≡",menu = self.hamburgerMenu)
         self.menuButton.pack(side = "right")
@@ -129,9 +131,15 @@ class newFrame:
             if subpage == "newtab":
                 self.newtab.newTabFrame.pack(fill="both", expand=True)
                 self.settingsFrame.settings_frame.pack_forget()
+                self.settingsFrame.history_frame.pack_forget()
             elif subpage == "settings":
                 self.newtab.newTabFrame.pack_forget()
                 self.settingsFrame.settings_frame.pack(fill="both", expand=True)
+                self.historyFrame.history_frame.pack_forget()
+            elif subpage == "history":
+                self.newtab.newTabFrame.pack_forget()
+                self.settingsFrame.settings_frame.pack_forget()
+                self.historyFrame.history_frame.pack(fill="both", expand=True)
         self.refreshButton.configure(text = "↺")
 
     def pageChanged(self,event=None):

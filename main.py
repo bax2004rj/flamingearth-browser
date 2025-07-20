@@ -45,8 +45,8 @@ class main():
     def tabAdd(self,page = "http://www.google.com/"): # Create new tab in tabFrame module
         newFrame = ttk.Frame(self.tabs)        
         self.processCount += 1
-        newtab = self.tabs.add(newFrame,text="New tab",image=self.tabImage,compound="left") # Add new tab to the notebook
-        self.tabVars.append(tkinter.StringVar(self.app,"New tab"))
+        newtab = self.tabs.add(newFrame,text="New Tab",image=self.tabImage,compound="left") # Add new tab to the notebook
+        self.tabVars.append(tkinter.StringVar(self.app,"New Tab"))
         self.tabFrames.append(newFrame)
         self.tabObjects.append(newtab) # Formerly textVariable = self.tabVars[-1]
         self.tabProcesses.append(tabFrame.newFrame(self.tabFrames[-1],self.tabVars[-1],self.homepage,self.processCount))

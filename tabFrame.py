@@ -46,6 +46,7 @@ class newFrame:
         self.addressBar.pack(fill = "x")
 
         self.historyMenu = tkinter.Menu(self.addressBar)
+        self.historyMenu.add_command(label="View history", command=lambda: self.goToPage(page = "flamingearth://history"))
         self.historyMenu.add_command(label="Clear history")
 
         self.downloadMenu = tkinter.Menu(self.addressBar)
@@ -88,7 +89,7 @@ class newFrame:
         self.hamburgerMenu.add_separator()
         self.hamburgerMenu.add_command(label="Find",command=self.browserView.toggleFindBar, state="disabled")
         self.hamburgerMenu.add_cascade(label="Zoom",menu=self.zoomMenu)
-        self.hamburgerMenu.add_command(label="Settings",command=lambda: self.goToPage("flamingearth://settings"))
+        self.hamburgerMenu.add_command(label="Settings",command=lambda: self.goToPage(page = "flamingearth://settings"))
 
         self.zoomMenu.add_command(label="Zoom level: 100%",state="disabled") # When creating the menu entry, do NOT set state="disabled"
         self.zoomMenu.add_separator()
@@ -124,23 +125,35 @@ class newFrame:
             self.browserView.changeUrl(page)
             self.zoomButton.configure(state="disabled") # Disable zoom menu
         elif page[:12] == "flamingearth":
-            subpage = page.lstrip("flamingearth://")
+            subpage = page.split("flamingearth://")[1]
+            print(subpage)
             self.browserView.hideBrowserView()
             self.hamburgerMenu.entryconfig("Find", state="disabled") # Disable find menu
             self.zoomButton.configure(state="disabled") # Disable zoom menu
             if subpage == "newtab":
-                self.newtab.newTabFrame.pack(fill="both", expand=True)
+                self.newtab.newTabFrame.pack(fill="both", side="top", expand=True)
                 self.settingsFrame.settings_frame.pack_forget()
-                self.settingsFrame.history_frame.pack_forget()
+                self.historyFrame.history_frame.pack_forget()
+                self.tabTitle = "New Tab"
             elif subpage == "settings":
                 self.newtab.newTabFrame.pack_forget()
-                self.settingsFrame.settings_frame.pack(fill="both", expand=True)
+                self.settingsFrame.settings_frame.pack(fill="both", side="top", expand=True)
                 self.historyFrame.history_frame.pack_forget()
+                self.tabTitle = "Settings"
             elif subpage == "history":
                 self.newtab.newTabFrame.pack_forget()
                 self.settingsFrame.settings_frame.pack_forget()
-                self.historyFrame.history_frame.pack(fill="both", expand=True)
+                self.historyFrame.history_frame.pack(fill="both", side="top", expand=True)
+                self.tabTitle = "History"
+            else:
+                self.tabTitle = "Error"
+                self.newtab.newTabFrame.pack_forget()
+                self.settingsFrame.settings_frame.pack_forget()
+                self.historyFrame.history_frame.pack_forget()
+                self.browserView.showBrowserView()
+                self.browserView.browser.show_error_page(page,f"{subpage} is not recognized as a valid flamingearth:// URL. Check spelling and try again","404")
         self.refreshButton.configure(text = "↺")
+        self.tabFrame.event_generate("<<TabTitleChanged>>")
 
     def pageChanged(self,event=None):
         oldUrl = self.currentAddress.get()

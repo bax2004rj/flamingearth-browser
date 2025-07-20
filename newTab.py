@@ -18,7 +18,6 @@ class newTab():
         newestObjectText = ""
         # Frame
         self.newTabFrame = tkinter.Frame(tab)
-        self.newTabFrame.pack(side = "top",fill = "both")
 
         # UI elements 
         self.addressObject = tkinter.Frame(self.newTabFrame)

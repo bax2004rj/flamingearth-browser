@@ -101,6 +101,9 @@ class newFrame:
         self.browserView.browser.bind("<<DoneLoading>>",self.loadingDone) # Bind page loaded event to loadingDone method
         self.browserView.browser.bind("<<TitleChanged>>",self.changeTabTitle) # Bind URL changed event to pageChanged method
 
+        self.historyFrame.history_list.bind("<<HistoryURLClicked>>", self.historyClicked) # Bind history URL clicked event to goToPage method
+        self.historyFrame.history_list.bind("<<DoneLoading>>",lambda e:self.loadingDone(fromFlamingearthProtocol=True)) # Bind history loaded event to loadingDone method
+
         self.goToPage(page = startpage)
 
     def goToPage(self,event=None,page = None, doNotAddToSessionHistory = False, doNotAddToHistory = False): #Handle going to page
@@ -110,11 +113,13 @@ class newFrame:
         if not doNotAddToSessionHistory:
             self.AddToSessionHistory()
         print(page)
-        if page != "flamingearth://newtab":
+        if page[:12] != "flamingearth://newtab":
             try:
                 self.newtab.newTabFrame.pack_forget()
+                self.settingsFrame.settings_frame.pack_forget()
+                self.historyFrame.history_frame.pack_forget()
             except Exception:
-                print("newtab frame did not need to be destroyed")
+                print("Flamingearth protocol frame did not need to be destroyed")
         if page[:4] == "http" or page[:4] == "file" or page[:5] == "about":
             try:
                 self.browserView.showBrowserView()
@@ -135,11 +140,13 @@ class newFrame:
                 self.settingsFrame.settings_frame.pack_forget()
                 self.historyFrame.history_frame.pack_forget()
                 self.tabTitle = "New Tab"
+                self.loadingDone(fromFlamingearthProtocol=True)
             elif subpage == "settings":
                 self.newtab.newTabFrame.pack_forget()
                 self.settingsFrame.settings_frame.pack(fill="both", side="top", expand=True)
                 self.historyFrame.history_frame.pack_forget()
                 self.tabTitle = "Settings"
+                self.loadingDone(fromFlamingearthProtocol=True)
             elif subpage == "history":
                 self.newtab.newTabFrame.pack_forget()
                 self.settingsFrame.settings_frame.pack_forget()
@@ -165,13 +172,18 @@ class newFrame:
             self.ClearForwardHistory()
             self.backbutton.configure(state="normal") # Enable back button     
             self.AddToSessionHistory()
+
+    def historyClicked(self,event=None):
+        historyURL = self.historyFrame.historyURL
+        print("[TABFRAME] History URL clicked:", historyURL)
+        self.goToPage(page=historyURL, doNotAddToSessionHistory=False, doNotAddToHistory=False)
         
     def setAddressBar(self,page):
         self.currentAddress.set(page)
         self.addressBar.update()
         self.refreshButton.configure(text = "X")
     
-    def loadingDone(self,event=None):
+    def loadingDone(self,event=None,fromFlamingearthProtocol=False):
         print(self.sessionUrls)
         try:
             latestHistoryItem = fileHandler.historyURL[-1]
@@ -183,7 +195,8 @@ class newFrame:
             fileHandler.historyIcons.append(self.iconFile)
             fileHandler.historyTimeAccessed.append(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         self.refreshButton.configure(text = "↺")
-        self.changeTabTitle(None,True, self.browserView.browser.title) # Change the tab title to the current page title
+        if not fromFlamingearthProtocol:
+            self.changeTabTitle(None,True, self.browserView.browser.title) # Change the tab title to the current page title
         self.doNotClearForwardHistory = False # Reset the doNotClearForwardHistory flag
         if not self.doNotClearForwardHistory and len(self.sessionUrls)> len(self.sessionTitles):
             self.finishAddingToSessionHistory()
@@ -257,8 +270,11 @@ class newFrame:
         self.forwardbutton.configure(state="disabled")
         self.forwardbutton.update()
         self.backMenu.delete(0, 'end')  # Clear and add all items to the back menu
-        for i in range(len(self.sessionUrls)):
-            self.backMenu.add_radiobutton(label=self.sessionTitles[i], command=self.jumpToPage, variable=self.sessionMenuNumber, value=i)
+        try:
+            for i in range(len(self.sessionUrls)):
+                self.backMenu.add_radiobutton(label=self.sessionTitles[i], command=self.jumpToPage, variable=self.sessionMenuNumber, value=i)
+        except IndexError:
+            print("[TabFrame] No session URLs to clear")
         print("[TabFrame] Forward history cleared")
 
     def AddToSessionHistory(self):

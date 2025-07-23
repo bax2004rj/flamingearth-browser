@@ -50,6 +50,8 @@ class History:
         self.history_scrollbar = ttk.Scrollbar(self.history_container, orient="vertical", command=self.history_container.yview)
         self.history_scrollbar.pack(side="right", fill="y")
 
+        self.historyURL = None
+
     def clear_history(self):
         self.clearDialog = tkinter.Toplevel()
         self.clearDialog.title("Clear History")
@@ -60,7 +62,7 @@ class History:
         self.clearText.pack(side="top")
 
         self.times = ["Last hour", "Last 24 hours", "Last 7 days", "Last 4 weeks", "All time", "Custom"]
-        self.timeDropdown = ttk.Combobox(self.clearDialog, values=self.times)
+        self.timeDropdown = ttk.Combobox(self.clearDialog, state='readonly', values=self.times)
         self.timeDropdown.current(4)
         self.timeDropdown.pack(side="top")
 
@@ -101,7 +103,7 @@ class History:
                 self.progress.step(progress_steps)
 
                 # Generate item frame
-                self.history_items.append(ttk.Frame(self.history_list, style="Card.TFrame",cursor="hand2"))
+                self.history_items.append(ttk.Frame(self.history_list, style="TButton",cursor="hand2"))
                 self.history_items[-1].iconImage = tkinter.PhotoImage(file=fileHandler.historyIcons[itemNumber] if os.path.exists(fileHandler.historyIcons[itemNumber]) else fileHandler.noIcon)
                 self.history_items[-1].iconLabel = ttk.Label(self.history_items[-1], text=fileHandler.historyTitles[itemNumber],image=self.history_items[-1].iconImage, compound="left")
                 self.history_items[-1].iconLabel.pack(side="top", fill = "x")
@@ -113,14 +115,23 @@ class History:
                 self.history_items[-1].seperator.pack(side="left")
                 self.history_items[-1].urlLabel = tkinter.Label(self.history_items[-1].bottomFrame,text=f"{fileHandler.historyURL[itemNumber]}", font=("TkDefaultFont",10,"italic"))
                 self.history_items[-1].urlLabel.pack(side = "left")
+                self.history_items[-1].itemNumber = itemNumber
+                self.history_items[-1].bind("<Button-1>", lambda e, url=fileHandler.historyURL[self.history_items[-1].itemNumber]: self.setUrl(url))
+                self.history_items[-1].iconLabel.bind("<Button-1>",lambda e, url=fileHandler.historyURL[self.history_items[-1].itemNumber]: self.setUrl(url))
+                self.history_items[-1].bottomFrame.bind("<Button-1>", lambda e, url=fileHandler.historyURL[self.history_items[-1].itemNumber]: self.setUrl(url))
 
                 #Detect changes in date and generate seperators
                 if previous_date != itemDate.date() and previous_date is not None:
                     self.history_seperators.append(tkinter.Label(self.history_list, text=str(itemDate.date()), font=("TkDefaultFont", 14)))
                     self.history_seperators[-1].pack(side = "top")
-                    print(f"[History] New date detected, adding seperator for {datetime.datetime.strftime(item,"%d %B %Y")}")
+                    print(f"[History] New date detected, adding seperator for {itemDate.date()}")
                     
                 self.history_items[-1].pack(side = "top", anchor="w", fill="x")
                 previous_date=itemDate.date()
             self.progress.pack_forget()
-        
+            self.history_list.event_generate("<<DoneLoading>>")
+
+    def setUrl(self, url):
+        self.history_list.event_generate("<<HistoryURLClicked>>")    
+        self.historyURL = url
+        print(f"[History] URL set to {self.historyURL}")

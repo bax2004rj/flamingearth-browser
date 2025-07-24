@@ -43,14 +43,24 @@ class History:
         self.history_container = tkinter.Canvas(self.history_frame)
         self.history_container.pack(side="right", fill="both", expand=True)
         self.history_list = ttk.Frame(self.history_container)
-        self.history_container.create_window((0,0), window=self.history_list, anchor="nw")
+        self.history_list_window = self.history_container.create_window((0,0), window=self.history_list, anchor="nw")
         self.history_seperators = []
         self.history_items = []
 
         self.history_scrollbar = ttk.Scrollbar(self.history_container, orient="vertical", command=self.history_container.yview)
         self.history_scrollbar.pack(side="right", fill="y")
 
+        self.history_list.bind("<Configure>", self._center_history_list)
+        self.history_container.configure(yscrollcommand=self.handle_scroll)
+
+        self.history_container.bind("<MouseWheel>", lambda e: self.history_container.yview_scroll(int(-1*(e.delta/120)), "units"))
+
         self.historyURL = None
+        self.isEnabled = False
+        # Chunk limits
+        self.currentlyLoadedItems = 0
+        self.targetLoadedItems = 16
+
 
     def clear_history(self):
         self.clearDialog = tkinter.Toplevel()
@@ -74,14 +84,17 @@ class History:
         self.cancelButton = ttk.Button(self.buttonFrame, text="Cancel", command=self.clearDialog.destroy)
         self.cancelButton.pack(side="right")
 
-
-    def setDarkmode(self):
-        if fileHandler.darkmode == True and fileHandler.tkinterTheme == "sv_ttk":
-            sv_ttk.set_theme("dark") # Enable darkmode
-        elif fileHandler.darkmode == False and fileHandler.tkinterTheme == "sv_ttk":
-            sv_ttk.set_theme("light") # Enable lightmode
+    def handle_scroll(self, y0, y1):
+        self.history_scrollbar.set(y0,y1) # Set scrollbar length
+        if float(y1)>0.9 and self.isEnabled: # Load in next chunk of history
+            newTargetLoadedItems = self.targetLoadedItems+16
+            if newTargetLoadedItems>len(fileHandler.historyTimeAccessed):
+                self.targetLoadedItems = len(fileHandler.historyTimeAccessed)
+            else:
+                self.targetLoadedItems = newTargetLoadedItems
+            self.load_history(supressEventGeneration=True) # Load next chunk of history, but do not report it to tabFrame
     
-    def load_history(self):
+    def load_history(self,supressEventGeneration = False):
         if len(fileHandler.historyURL) == 0:
             print("[History] No history")
             self.no_history_image = tkinter.PhotoImage(file=fileHandler.noShortcut)
@@ -90,22 +103,21 @@ class History:
         else:
             self.progress.pack(side="top", fill="x")
             progress_steps = 100 / len(fileHandler.historyURL)
-            self.history_seperators.clear()
-            self.history_items.clear()
-
-            self.history_seperators.append(tkinter.Label(self.history_list, text="Today", font=("TkDefaultFont", 14)))
-            self.history_seperators[-1].pack(side = "top")
+            ##self.history_seperators.clear()
+            ##self.history_items.clear()
             previous_date = None
-            for item in reversed(fileHandler.historyTimeAccessed):
+            reversedTimes = list(reversed(fileHandler.historyTimeAccessed))
+            for i in range(self.targetLoadedItems-self.currentlyLoadedItems):
+                item = reversedTimes[int(i)+self.currentlyLoadedItems]
                 print(f"[History] Processing item {item}")
                 itemNumber = fileHandler.historyTimeAccessed.index(item)
                 itemDate = datetime.datetime.strptime(item,"%Y-%m-%d %H:%M:%S")
                 self.progress.step(progress_steps)
 
                 # Generate item frame
-                self.history_items.append(ttk.Frame(self.history_list, style="TButton",cursor="hand2"))
+                self.history_items.append(ttk.Frame(self.history_list,cursor="hand2"))
                 self.history_items[-1].iconImage = tkinter.PhotoImage(file=fileHandler.historyIcons[itemNumber] if os.path.exists(fileHandler.historyIcons[itemNumber]) else fileHandler.noIcon)
-                self.history_items[-1].iconLabel = ttk.Label(self.history_items[-1], text=fileHandler.historyTitles[itemNumber],image=self.history_items[-1].iconImage, compound="left")
+                self.history_items[-1].iconLabel = ttk.Label(self.history_items[-1], text=fileHandler.historyTitles[itemNumber],image=self.history_items[-1].iconImage, style="TButton", compound="left")
                 self.history_items[-1].iconLabel.pack(side="top", fill = "x")
                 self.history_items[-1].bottomFrame = ttk.Frame(self.history_items[-1])
                 self.history_items[-1].bottomFrame.pack(side="top",fill="x")
@@ -121,7 +133,7 @@ class History:
                 self.history_items[-1].bottomFrame.bind("<Button-1>", lambda e, url=fileHandler.historyURL[self.history_items[-1].itemNumber]: self.setUrl(url))
 
                 #Detect changes in date and generate seperators
-                if previous_date != itemDate.date() and previous_date is not None:
+                if previous_date != itemDate.date():
                     self.history_seperators.append(tkinter.Label(self.history_list, text=str(itemDate.date()), font=("TkDefaultFont", 14)))
                     self.history_seperators[-1].pack(side = "top")
                     print(f"[History] New date detected, adding seperator for {itemDate.date()}")
@@ -129,9 +141,23 @@ class History:
                 self.history_items[-1].pack(side = "top", anchor="w", fill="x")
                 previous_date=itemDate.date()
             self.progress.pack_forget()
-            self.history_list.event_generate("<<DoneLoading>>")
+            self.history_scrollbar.update()
+            if not supressEventGeneration:
+                self.history_list.event_generate("<<DoneLoading>>")
+            self.currentlyLoadedItems=self.targetLoadedItems
 
     def setUrl(self, url):
         self.history_list.event_generate("<<HistoryURLClicked>>")    
         self.historyURL = url
         print(f"[History] URL set to {self.historyURL}")
+
+    def _center_history_list(self, event):
+        canvas_width = event.width
+        frame_width = self.history_list.winfo_reqwidth()
+        # Responsive horizontal padding: 10% of canvas width, minimum 20px
+        pad_x = max(int(canvas_width * 0.1), 20)
+        # Center the frame horizontally
+        x = (canvas_width - frame_width) // 2 if canvas_width > frame_width else 0
+        self.history_container.coords(self.history_list_window, x, 0)
+        self.history_list.configure(padding=(pad_x, 10, pad_x, 10))  # (left, top, right, bottom)
+        self.history_container.configure(scrollregion=self.history_container.bbox("all"))

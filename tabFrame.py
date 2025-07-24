@@ -110,6 +110,7 @@ class newFrame:
         if page == None:
             page = self.addressBar.get()
         self.setAddressBar(page) # Set the address bar to the new URL
+        self.historyFrame.isEnabled = False # Set if history should load items
         if not doNotAddToSessionHistory:
             self.AddToSessionHistory()
         print(page)
@@ -153,6 +154,7 @@ class newFrame:
                 self.historyFrame.history_frame.pack(fill="both", side="top", expand=True)
                 self.tabTitle = "History"
                 self.historyFrame.load_history()
+                self.historyFrame.isEnabled = True
             else:
                 self.tabTitle = "Error"
                 self.newtab.newTabFrame.pack_forget()

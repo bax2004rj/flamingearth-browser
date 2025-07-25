@@ -4,6 +4,7 @@ import fileHandler
 import sv_ttk
 import os
 import datetime
+import humanize
 
 class History:
     def __init__(self,tab):
@@ -57,6 +58,7 @@ class History:
 
         self.historyURL = None
         self.isEnabled = False
+        self.previousDate = None
         # Chunk limits
         self.currentlyLoadedItems = 0
         self.targetLoadedItems = 16
@@ -105,7 +107,6 @@ class History:
             progress_steps = 100 / len(fileHandler.historyURL)
             ##self.history_seperators.clear()
             ##self.history_items.clear()
-            previous_date = None
             reversedTimes = list(reversed(fileHandler.historyTimeAccessed))
             for i in range(self.targetLoadedItems-self.currentlyLoadedItems):
                 item = reversedTimes[int(i)+self.currentlyLoadedItems]
@@ -133,13 +134,13 @@ class History:
                 self.history_items[-1].bottomFrame.bind("<Button-1>", lambda e, url=fileHandler.historyURL[self.history_items[-1].itemNumber]: self.setUrl(url))
 
                 #Detect changes in date and generate seperators
-                if previous_date != itemDate.date():
-                    self.history_seperators.append(tkinter.Label(self.history_list, text=str(itemDate.date()), font=("TkDefaultFont", 14)))
+                if self.previousDate != itemDate.date():
+                    self.history_seperators.append(tkinter.Label(self.history_list, text=humanize.naturalday(itemDate.date()).capitalize(), font=("TkDefaultFont", 14)))
                     self.history_seperators[-1].pack(side = "top")
                     print(f"[History] New date detected, adding seperator for {itemDate.date()}")
                     
                 self.history_items[-1].pack(side = "top", anchor="w", fill="x")
-                previous_date=itemDate.date()
+                self.previousDate=itemDate.date()
             self.progress.pack_forget()
             self.history_scrollbar.update()
             if not supressEventGeneration:

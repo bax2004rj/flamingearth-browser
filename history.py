@@ -1,5 +1,5 @@
 import tkinter
-from tkinter import ttk
+from tkinter import ttk,messagebox
 import fileHandler
 import sv_ttk
 import os
@@ -30,13 +30,23 @@ class History:
         self.advancedButton = ttk.Button(self.searchFrame,text="Search options")
         self.advancedButton.pack(side="right")
 
+        self.errorBar = ttk.Frame(self.topbar, style = "TEntry")
+        self.errorText = ttk.Label(self.errorBar,text="")
+        self.errorText.pack(in_=self.errorBar, side="left", padx=10, fill = "x")
+        self.errorClose = ttk.Button(self.errorBar, text="OK", style = "Accent.TButton", command=self.errorBar.pack_forget)
+        self.errorClose.pack(side="right")
+
+        self.historyPadding = tkinter.Frame(self.history_frame)
+       
+
         self.datesList = tkinter.Listbox(self.sidebar)
         self.datesList.pack(fill="both", expand=True)
         self.datesList.insert(0, "Today")
         self.datesList.insert(1, "Yesterday")
-        self.datesList.insert(2, "Last 7 days")
-        self.datesList.insert(3, "Last 30 days")
+        self.datesList.insert(2, "Last week")
+        self.datesList.insert(3, "30 days ago")
         self.datesList.insert(4, "All time")
+        self.datesList.bind("<<ListboxSelect>>", self.jumpToDate)
 
         self.clear_button = ttk.Button(self.sidebar, text="Clear History", command=self.clear_history)
         self.clear_button.pack(side="bottom", fill="x")
@@ -55,7 +65,7 @@ class History:
         self.history_container.configure(yscrollcommand=self.handle_scroll)
 
         self.history_container.bind("<MouseWheel>", lambda e: self.history_container.yview_scroll(int(-1*(e.delta/120)), "units"))
-
+                
         self.historyURL = None
         self.isEnabled = False
         self.previousDate = None
@@ -162,3 +172,51 @@ class History:
         self.history_container.coords(self.history_list_window, x, 0)
         self.history_list.configure(padding=(pad_x, 10, pad_x, 10))  # (left, top, right, bottom)
         self.history_container.configure(scrollregion=self.history_container.bbox("all"))
+    
+    def jumpToDate(self,event = None):
+        selected_date = self.datesList.get(self.datesList.curselection())
+        print(f"[History] Jumping to date: {selected_date}")
+        setPoint = 0
+        if selected_date == "Today":
+            setPoint = 0
+        elif selected_date == "Yesterday":
+            setDate = datetime.datetime.now() - datetime.timedelta(days=1)
+            for i, timeStr in enumerate(reversed(fileHandler.historyTimeAccessed)):
+                itemDate = datetime.datetime.strptime(timeStr,"%Y-%m-%d %H:%M:%S").date()
+                if itemDate < setDate.date():
+                    setPoint = i / len(fileHandler.historyTimeAccessed)
+                    self.currentlyLoadedItems = i+16
+                    break
+            else:
+                setPoint = 0
+                self.showError("No websites were visited yesterday")
+        elif selected_date == "Last week":
+            setDate = datetime.datetime.now() - datetime.timedelta(days=7)
+            for i, timeStr in enumerate(reversed(fileHandler.historyTimeAccessed)):
+                itemDate = datetime.datetime.strptime(timeStr,"%Y-%m-%d %H:%M:%S").date()
+                if itemDate < setDate.date():
+                    setPoint = i / len(fileHandler.historyTimeAccessed)
+                    self.currentlyLoadedItems = i+16
+                    break
+            else:
+                setPoint = 0
+                self.showError("No websites were visited last week")
+        elif selected_date == "30 days ago":
+            setDate = datetime.datetime.now() - datetime.timedelta(days=30)
+            for i, timeStr in enumerate(reversed(fileHandler.historyTimeAccessed)):
+                itemDate = datetime.datetime.strptime(timeStr,"%Y-%m-%d %H:%M:%S").date()
+                if itemDate < setDate.date():
+                    setPoint = i / len(fileHandler.historyTimeAccessed)
+                    self.currentlyLoadedItems = i+16
+                    break
+            else:
+                setPoint = 0
+                self.showError("No websites were visited 30 days ago")
+        elif selected_date == "All time":
+            setPoint = 0
+        self.load_history()
+        self.history_container.yview_moveto(setPoint)    
+        
+    def showError(self,text):
+            self.errorText.config(text=text)
+            self.errorBar.pack(side="top",fill = "x", expand=True)

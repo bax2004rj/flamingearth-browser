@@ -27,7 +27,7 @@ class History:
         self.search_bar = ttk.Entry(self.searchFrame)
         self.search_bar.pack(side = "left")
         self.search_bar.insert(0, "Search through history…")
-        self.advancedButton = ttk.Button(self.searchFrame,text="Search options")
+        self.advancedButton = ttk.Button(self.searchFrame,text="Search options",command=self.searchOptions)
         self.advancedButton.pack(side="right")
 
         self.errorBar = ttk.Frame(self.topbar, style = "TEntry")
@@ -72,6 +72,8 @@ class History:
         # Chunk limits
         self.currentlyLoadedItems = 0
         self.targetLoadedItems = 16
+        #Advanced Search
+        self.advancedSearchCriteria = ["URL","Title","Date range","Before date","After date"]
 
 
     def clear_history(self):
@@ -219,4 +221,48 @@ class History:
         
     def showError(self,text):
             self.errorText.config(text=text)
-            self.errorBar.pack(side="top",fill = "x", expand=True)
+            self.errorBar.pack(side="top",fill = "x")
+    
+    #Search commands
+    def searchOptions(self):
+        self.searchDialog = tkinter.Toplevel()
+        self.searchDialog.title("Search Options")
+        self.searchDialog.geometry("300x200")
+
+        self.advancedFrame = ttk.LabelFrame(self.searchDialog,text="Advanced Search")
+        self.advancedFrame.pack(side="top",fill="both")
+        self.fieldsFrame = ttk.Frame(self.advancedFrame)
+        self.fieldsFrame.pack(expand=True,fill="both")
+        self.fields = []
+        self.fields.append(tkinter.Frame(self.fieldsFrame))
+        self.fields[0].pack(side = "top",fill = "x")
+        self.fields[0].criteriaSelector = ttk.Combobox(self.fields[0],state="readonly",values=self.advancedSearchCriteria)
+        self.fields[0].criteriaSelector.pack(side="left",expand=False)
+        self.fields[0].criteriaSelector.bind("<<ComboboxSelected>>",lambda e:self.itemSelected(self.fields[0]))
+        self.addButton = ttk.Button(self.advancedFrame,text = "+ Add Criteria", state= "disabled") #Disabled until criteria checked
+        self.addButton.pack(side="bottom",anchor="sw")
+        
+        self.searchFrame = ttk.Frame(self.searchDialog,style="Card.TFrame")
+        self.searchFrame.pack(side="bottom", fill="x")
+        self.searchButton = ttk.Button(self.searchFrame, text="Search", style="Accent.TButton")
+        self.searchButton.pack(side="right")
+        self.cancelButton = ttk.Button(self.searchFrame, text="Cancel", command=self.searchDialog.destroy)
+        self.cancelButton.pack(side="right")
+    
+    def itemSelected(self,itemFrame):
+        self.addButton.config(state="normal")
+        itemSelection = itemFrame.criteriaSelector.get()
+        # Destroy previous widgets in the frame
+        try:
+            itemFrame.textContainer.destroy()
+        except:
+            pass
+        try:
+            itemFrame.urlText.destroy()
+        except:
+            pass
+        itemFrame.textContainer = tkinter.Frame(itemFrame)
+        itemFrame.textContainer.pack(side="left", fill="x")
+        if itemSelection == "URL":
+            itemFrame.urlText = ttk.Entry(itemFrame.textContainer)
+            itemFrame.urlText.pack(fill = "x")

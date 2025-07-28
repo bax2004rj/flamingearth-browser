@@ -5,6 +5,7 @@ import sv_ttk
 import os
 import datetime
 import humanize
+import tkcalendar
 
 class History:
     def __init__(self,tab):
@@ -227,7 +228,7 @@ class History:
     def searchOptions(self):
         self.searchDialog = tkinter.Toplevel()
         self.searchDialog.title("Search Options")
-        self.searchDialog.geometry("300x200")
+        self.searchDialog.geometry("500x200")
 
         self.advancedFrame = ttk.LabelFrame(self.searchDialog,text="Advanced Search")
         self.advancedFrame.pack(side="top",fill="both")
@@ -239,7 +240,7 @@ class History:
         self.fields[0].criteriaSelector = ttk.Combobox(self.fields[0],state="readonly",values=self.advancedSearchCriteria)
         self.fields[0].criteriaSelector.pack(side="left",expand=False)
         self.fields[0].criteriaSelector.bind("<<ComboboxSelected>>",lambda e:self.itemSelected(self.fields[0]))
-        self.addButton = ttk.Button(self.advancedFrame,text = "+ Add Criteria", state= "disabled") #Disabled until criteria checked
+        self.addButton = ttk.Button(self.advancedFrame,text = "+ Add Criteria", state= "disabled",command = self.addCriteria) #Disabled until criteria checked
         self.addButton.pack(side="bottom",anchor="sw")
         
         self.searchFrame = ttk.Frame(self.searchDialog,style="Card.TFrame")
@@ -261,8 +262,59 @@ class History:
             itemFrame.urlText.destroy()
         except:
             pass
+        try:
+            itemFrame.titleText.destroy()
+        except:
+            pass
+        try:
+            itemFrame.afterDate.destroy()
+        except:
+            pass
+        try:
+            itemFrame.beforeDate.destroy()
+            itemFrame.dash.destroy()
+        except:
+            pass
         itemFrame.textContainer = tkinter.Frame(itemFrame)
         itemFrame.textContainer.pack(side="left", fill="x")
         if itemSelection == "URL":
             itemFrame.urlText = ttk.Entry(itemFrame.textContainer)
             itemFrame.urlText.pack(fill = "x")
+        if itemSelection == "Title":
+            itemFrame.titleText = ttk.Entry(itemFrame.textContainer)
+            itemFrame.titleText.pack(fill="x")
+        if itemSelection == "Date range":
+            itemFrame.afterDate = tkcalendar.DateEntry(itemFrame.textContainer)
+            itemFrame.afterDate.pack(side = "left",fill = "x")
+            itemFrame.dash = tkinter.Label(itemFrame.textContainer,text="-")
+            itemFrame.dash.pack(side="left")
+            itemFrame.beforeDate = tkcalendar.DateEntry(itemFrame.textContainer)
+            itemFrame.beforeDate.pack(side = "left",fill = "x")
+        if itemSelection == "Before date":
+            itemFrame.beforeDate = tkcalendar.DateEntry(itemFrame.textContainer)
+            itemFrame.beforeDate.pack(side = "left",fill = "x")
+        if itemSelection == "After date":
+            itemFrame.afterDate = tkcalendar.DateEntry(itemFrame.textContainer)
+            itemFrame.afterDate.pack(side = "left",fill = "x")
+
+    def addCriteria(self):
+        self.fields.append(tkinter.Frame(self.fieldsFrame))
+        self.fields[-1].pack(side = "top",fill = "x")
+        fieldIndex = self.fields.index(self.fields[-1])
+        self.fields[-1].removeButton = ttk.Button(self.fields[-1],text="-",command=lambda: self.removeCriteria(self.fields[fieldIndex]))
+        self.fields[-1].removeButton.pack(side="left")
+        self.fields[-1].criteriaSelector = ttk.Combobox(self.fields[-1],state="readonly",values=self.advancedSearchCriteria)
+        self.fields[-1].criteriaSelector.pack(side="left",expand=False)
+        self.fields[-1].criteriaSelector.bind("<<ComboboxSelected>>",lambda e:self.itemSelected(self.fields[fieldIndex]))
+        self.searchDialog.geometry(f"{str(self.searchDialog.winfo_width())}x{str(self.searchDialog.winfo_height()+32)}")
+        self.addButton.configure(state="disabled")
+
+    def removeCriteria(self,item):
+        itemIndex = self.fields.index(item)
+        item.destroy()
+        self.searchDialog.geometry(f"{str(self.searchDialog.winfo_width())}x{str(self.searchDialog.winfo_height()-32)}")
+        try:
+            if self.fields[itemIndex-1].criteriaSelector.get() is None or self.fields[itemIndex+1].criteriaSelector.get() is None:
+                self.addButton.configure(state="disabled")
+        except IndexError:
+            pass

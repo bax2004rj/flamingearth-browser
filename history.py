@@ -25,9 +25,11 @@ class History:
         self.searchFrame = ttk.Frame(self.topbar)
         self.searchFrame.pack()
 
-        self.search_bar = ttk.Entry(self.searchFrame)
+        self.defaultText = tkinter.StringVar(self.searchFrame,value="Search through history…")
+        self.searchText = tkinter.StringVar(self.searchFrame)
+        self.search_bar = ttk.Entry(self.searchFrame,textvariable=self.defaultText)
         self.search_bar.pack(side = "left")
-        self.search_bar.insert(0, "Search through history…")
+        self.search_bar.bind("<FocusIn>",lambda e:self.search_bar.configure(textvariable=self.searchText))
         self.advancedButton = ttk.Button(self.searchFrame,text="Search options",command=self.searchOptions)
         self.advancedButton.pack(side="right")
 
@@ -245,7 +247,7 @@ class History:
         
         self.searchFrame = ttk.Frame(self.searchDialog,style="Card.TFrame")
         self.searchFrame.pack(side="bottom", fill="x")
-        self.searchButton = ttk.Button(self.searchFrame, text="Search", style="Accent.TButton")
+        self.searchButton = ttk.Button(self.searchFrame, text="Search", style="Accent.TButton", command=self.acceptSearchOptions)
         self.searchButton.pack(side="right")
         self.cancelButton = ttk.Button(self.searchFrame, text="Cancel", command=self.searchDialog.destroy)
         self.cancelButton.pack(side="right")
@@ -318,3 +320,26 @@ class History:
                 self.addButton.configure(state="disabled")
         except IndexError:
             pass
+    
+    def acceptSearchOptions(self):
+        currentText = self.search_bar.get()
+        if currentText == self.defaultText.get():
+            currentText = ""
+            self.search_bar.configure(textvariable=self.searchText)
+        for item in self.fields:
+            try:
+                itemType = item.criteriaSelector.get()
+                if itemType == "URL":
+                    currentText = currentText + " url:" + item.urlText.get()
+                elif itemType == "Title":
+                    currentText = currentText + " title:" + item.titleText.get()
+                elif itemType == "Date range":
+                    currentText = currentText + " date:" + str(item.afterDate.get_date())+","+str(item.beforeDate.get_date())
+                elif itemType == "Before date":
+                    currentText = currentText + " before:" + str(item.beforeDate.get_date())
+                elif itemType == "After date":
+                    currentText = currentText + " after:" + str(item.afterDate.get_date())
+            except Exception as e:
+                print(f"[HISTORY] Criteria could not be loaded because: {e}")
+        self.searchText.set(currentText)
+        self.searchDialog.destroy()

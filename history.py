@@ -29,7 +29,9 @@ class History:
         self.searchText = tkinter.StringVar(self.searchFrame)
         self.search_bar = ttk.Entry(self.searchFrame,textvariable=self.defaultText)
         self.search_bar.pack(side = "left")
-        self.search_bar.bind("<FocusIn>",lambda e:self.search_bar.configure(textvariable=self.searchText))
+        self.search_bar.bind("<FocusIn>",self.enterSearch)
+        self.searchText.trace_add("write",self.search)
+        self.deleteButton = ttk.Button(self.searchFrame,text="⌫", style= "Accent.TButton",command=self.cancelSearch)
         self.advancedButton = ttk.Button(self.searchFrame,text="Search options",command=self.searchOptions)
         self.advancedButton.pack(side="right")
 
@@ -72,6 +74,7 @@ class History:
         self.historyURL = None
         self.isEnabled = False
         self.previousDate = None
+        self.searching = False
         # Chunk limits
         self.currentlyLoadedItems = 0
         self.targetLoadedItems = 16
@@ -112,11 +115,55 @@ class History:
             self.load_history(supressEventGeneration=True) # Load next chunk of history, but do not report it to tabFrame
     
     def load_history(self,supressEventGeneration = False):
-        if len(fileHandler.historyURL) == 0:
+        if len(fileHandler.historyURL) == 0 or self.searching:
             print("[History] No history")
             self.no_history_image = tkinter.PhotoImage(file=fileHandler.noShortcut)
             self.nohistorytext = tkinter.Label(self.history_list, text="No history found", font=("TkDefaultFont", 16), image=self.no_history_image, compound="top")
             self.nohistorytext.pack()
+        elif self.searching: #Will only load search results
+            self.progress.pack(side="top", fill="x")
+            progress_steps = 100 / len(fileHandler.historyURL)
+            ##self.history_seperators.clear()
+            ##self.history_items.clear()
+            reversedTimes = list(reversed(fileHandler.historyTimeAccessed))
+            for i in range(self.targetLoadedItems-self.currentlyLoadedItems):
+                item = reversedTimes[int(i)+self.currentlyLoadedItems]
+                print(f"[History] Processing item {item}")
+                itemNumber = fileHandler.historyTimeAccessed.index(item)
+                itemDate = datetime.datetime.strptime(item,"%Y-%m-%d %H:%M:%S")
+                self.progress.step(progress_steps)
+
+                # Generate item frame
+                self.history_items.append(ttk.Frame(self.history_list,cursor="hand2"))
+                self.history_items[-1].iconImage = tkinter.PhotoImage(file=fileHandler.historyIcons[itemNumber] if os.path.exists(fileHandler.historyIcons[itemNumber]) else fileHandler.noIcon)
+                self.history_items[-1].iconLabel = ttk.Label(self.history_items[-1], text=fileHandler.historyTitles[itemNumber],image=self.history_items[-1].iconImage, style="TButton", compound="left")
+                self.history_items[-1].iconLabel.pack(side="top", fill = "x")
+                self.history_items[-1].bottomFrame = ttk.Frame(self.history_items[-1])
+                self.history_items[-1].bottomFrame.pack(side="top",fill="x")
+                self.history_items[-1].timeLabel = tkinter.Label(self.history_items[-1].bottomFrame,text=f"{itemDate.time()}", font=("TkDefaultFont",10))
+                self.history_items[-1].timeLabel.pack(side = "left")
+                self.history_items[-1].seperator = ttk.Separator(self.history_items[-1].bottomFrame, orient="vertical")
+                self.history_items[-1].seperator.pack(side="left")
+                self.history_items[-1].urlLabel = tkinter.Label(self.history_items[-1].bottomFrame,text=f"{fileHandler.historyURL[itemNumber]}", font=("TkDefaultFont",10,"italic"))
+                self.history_items[-1].urlLabel.pack(side = "left")
+                self.history_items[-1].itemNumber = itemNumber
+                self.history_items[-1].bind("<Button-1>", lambda e, url=fileHandler.historyURL[self.history_items[-1].itemNumber]: self.setUrl(url))
+                self.history_items[-1].iconLabel.bind("<Button-1>",lambda e, url=fileHandler.historyURL[self.history_items[-1].itemNumber]: self.setUrl(url))
+                self.history_items[-1].bottomFrame.bind("<Button-1>", lambda e, url=fileHandler.historyURL[self.history_items[-1].itemNumber]: self.setUrl(url))
+
+                #Detect changes in date and generate seperators
+                if self.previousDate != itemDate.date():
+                    self.history_seperators.append(tkinter.Label(self.history_list, text=humanize.naturalday(itemDate.date()).capitalize(), font=("TkDefaultFont", 14)))
+                    self.history_seperators[-1].pack(side = "top")
+                    print(f"[History] New date detected, adding seperator for {itemDate.date()}")
+                    
+                self.history_items[-1].pack(side = "top", anchor="w", fill="x")
+                self.previousDate=itemDate.date()
+            self.progress.pack_forget()
+            self.history_scrollbar.update()
+            if not supressEventGeneration:
+                self.history_list.event_generate("<<DoneLoading>>")
+            self.currentlyLoadedItems=self.targetLoadedItems
         else:
             self.progress.pack(side="top", fill="x")
             progress_steps = 100 / len(fileHandler.historyURL)
@@ -325,14 +372,14 @@ class History:
         currentText = self.search_bar.get()
         if currentText == self.defaultText.get():
             currentText = ""
-            self.search_bar.configure(textvariable=self.searchText)
+            self.enterSearch()
         for item in self.fields:
             try:
                 itemType = item.criteriaSelector.get()
                 if itemType == "URL":
-                    currentText = currentText + " url:" + item.urlText.get()
+                    currentText = currentText + " url:'" + item.urlText.get()+"'"
                 elif itemType == "Title":
-                    currentText = currentText + " title:" + item.titleText.get()
+                    currentText = currentText + " title:'" + item.titleText.get()+"'"
                 elif itemType == "Date range":
                     currentText = currentText + " date:" + str(item.afterDate.get_date())+","+str(item.beforeDate.get_date())
                 elif itemType == "Before date":
@@ -343,3 +390,47 @@ class History:
                 print(f"[HISTORY] Criteria could not be loaded because: {e}")
         self.searchText.set(currentText)
         self.searchDialog.destroy()
+    
+    def enterSearch(self,event=None):
+        if not self.searching:
+            self.search_bar.configure(textvariable=self.searchText)
+            self.advancedButton.pack_forget()
+            self.deleteButton.pack(side = "left")
+            self.advancedButton.pack(side="left")
+            self.searching = True
+    
+    def cancelSearch(self,event=None):
+        self.searchText.set("")
+        self.deleteButton.pack_forget()
+        self.search_bar.configure(textvariable=self.defaultText)
+        self.searching=False
+
+    def search(self, *args):
+        query = self.searchText.get() #Original query
+        filters = []
+        word = "" #A single word from the query to find search criteria
+        isAFilter = False
+        refinedQuery = "" #Version of the query without advanced search criteria
+        wordCount = 0
+        for char in query:
+            if char == " " and not word == "" and not isAFilter:
+                refinedQuery=refinedQuery+word
+                word = ""
+                wordCount += 1
+            if char == " " and not word == "" and isAFilter:
+                filters[-1].text = word
+                word = ""
+            if char == " " and word == "" and isAFilter:
+                filters.pop(-1)
+            if char == " " and word == "" and not isAFilter:
+                refinedQuery = refinedQuery 
+            if char == ":":
+                filters.append(word)
+                word = ""
+            else:
+                word=word+char        
+        if wordCount == 0:#Add incomplete words
+            refinedQuery = word
+        else:
+            refinedQuery = refinedQuery+word 
+        print(f"[History] Searching for query {refinedQuery}")

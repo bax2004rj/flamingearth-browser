@@ -25,12 +25,13 @@ class History:
         self.searchFrame = ttk.Frame(self.topbar)
         self.searchFrame.pack()
 
-        self.defaultText = tkinter.StringVar(self.searchFrame,value="Search through history…")
+        self.defaultText = tkinter.StringVar(self.searchFrame,value="Search through history… (↵ to search)")
         self.searchText = tkinter.StringVar(self.searchFrame)
         self.search_bar = ttk.Entry(self.searchFrame,textvariable=self.defaultText)
-        self.search_bar.pack(side = "left")
+        self.search_bar.pack(side = "left", expand= 1)
         self.search_bar.bind("<FocusIn>",self.enterSearch)
-        self.searchText.trace_add("write",self.search)
+        self.search_bar.bind("<Return>",self.search)
+        ##self.searchText.trace_add("write",self.search) ## Instantly tracking search caused issues with rendering, so it searches on enter press
         self.deleteButton = ttk.Button(self.searchFrame,text="⌫", style= "Accent.TButton",command=self.cancelSearch)
         self.advancedButton = ttk.Button(self.searchFrame,text="Search options",command=self.searchOptions)
         self.advancedButton.pack(side="right")
@@ -75,12 +76,17 @@ class History:
         self.isEnabled = False
         self.previousDate = None
         self.searching = False
+        self.searchRenderRunning = False
         # Chunk limits
         self.currentlyLoadedItems = 0
         self.targetLoadedItems = 16
         #Advanced Search
         self.advancedSearchCriteria = ["URL","Title","Date range","Before date","After date"]
-
+        self.filterText = ""
+        self.filterBeforeDate = datetime.datetime.now().date()
+        self.filterAfterDate = datetime.datetime.now().date()
+        self.foundIndicies = []
+        self.allIndices = range(len(fileHandler.historyTimeAccessed))
 
     def clear_history(self):
         self.clearDialog = tkinter.Toplevel()
@@ -106,7 +112,7 @@ class History:
 
     def handle_scroll(self, y0, y1):
         self.history_scrollbar.set(y0,y1) # Set scrollbar length
-        if float(y1)>0.9 and self.isEnabled: # Load in next chunk of history
+        if float(y1)>0.9 and self.isEnabled and self.searchRenderRunning == False: # Load in next chunk of history
             newTargetLoadedItems = self.targetLoadedItems+16
             if newTargetLoadedItems>len(fileHandler.historyTimeAccessed):
                 self.targetLoadedItems = len(fileHandler.historyTimeAccessed)
@@ -115,19 +121,31 @@ class History:
             self.load_history(supressEventGeneration=True) # Load next chunk of history, but do not report it to tabFrame
     
     def load_history(self,supressEventGeneration = False):
-        if len(fileHandler.historyURL) == 0 or self.searching:
+        if len(fileHandler.historyURL) == 0 and not self.searching:
             print("[History] No history")
             self.no_history_image = tkinter.PhotoImage(file=fileHandler.noShortcut)
             self.nohistorytext = tkinter.Label(self.history_list, text="No history found", font=("TkDefaultFont", 16), image=self.no_history_image, compound="top")
             self.nohistorytext.pack()
+        elif len(self.foundIndicies) == 0 and self.searching:
+            self.destroyAllItems()
+            print("[History] No history")
+            self.no_history_image = tkinter.PhotoImage(file=fileHandler.noShortcut)
+            self.nohistorytext = tkinter.Label(self.history_list, text="No results found", font=("TkDefaultFont", 16), image=self.no_history_image, compound="top")
+            self.nohistorytext.pack()
         elif self.searching: #Will only load search results
+            self.searchRenderRunning = True
             self.progress.pack(side="top", fill="x")
             progress_steps = 100 / len(fileHandler.historyURL)
             ##self.history_seperators.clear()
             ##self.history_items.clear()
             reversedTimes = list(reversed(fileHandler.historyTimeAccessed))
             for i in range(self.targetLoadedItems-self.currentlyLoadedItems):
-                item = reversedTimes[int(i)+self.currentlyLoadedItems]
+                try:
+                    itemIndex = self.foundIndicies[int(i)+self.currentlyLoadedItems]
+                except IndexError:
+                    print("[History] Cannot continue loading chunk, all items already listed")
+                    break
+                item = reversedTimes[itemIndex]
                 print(f"[History] Processing item {item}")
                 itemNumber = fileHandler.historyTimeAccessed.index(item)
                 itemDate = datetime.datetime.strptime(item,"%Y-%m-%d %H:%M:%S")
@@ -164,6 +182,7 @@ class History:
             if not supressEventGeneration:
                 self.history_list.event_generate("<<DoneLoading>>")
             self.currentlyLoadedItems=self.targetLoadedItems
+            self.searchRenderRunning=False 
         else:
             self.progress.pack(side="top", fill="x")
             progress_steps = 100 / len(fileHandler.historyURL)
@@ -208,6 +227,20 @@ class History:
             if not supressEventGeneration:
                 self.history_list.event_generate("<<DoneLoading>>")
             self.currentlyLoadedItems=self.targetLoadedItems
+
+    def destroyAllItems(self):
+        for i in self.history_items:
+            i.destroy()
+        for i in self.history_seperators:
+            i.destroy()
+        self.history_items.clear()
+        self.history_seperators.clear()
+        try:
+            self.nohistorytext.destroy()
+        except Exception:
+            pass
+        self.history_list.update_idletasks()
+        self.history_container.configure(scrollregion=self.history_container.bbox("all"))
 
     def setUrl(self, url):
         self.history_list.event_generate("<<HistoryURLClicked>>")    
@@ -377,15 +410,15 @@ class History:
             try:
                 itemType = item.criteriaSelector.get()
                 if itemType == "URL":
-                    currentText = currentText + " url:'" + item.urlText.get()+"'"
+                    currentText = currentText + " url:\"" + item.urlText.get()+"\""
                 elif itemType == "Title":
-                    currentText = currentText + " title:'" + item.titleText.get()+"'"
+                    currentText = currentText + " title:\"" + item.titleText.get()+"\""
                 elif itemType == "Date range":
-                    currentText = currentText + " date:" + str(item.afterDate.get_date())+","+str(item.beforeDate.get_date())
+                    currentText = currentText + " date:\"" + str(item.afterDate.get_date())+","+str(item.beforeDate.get_date())+"\""
                 elif itemType == "Before date":
-                    currentText = currentText + " before:" + str(item.beforeDate.get_date())
+                    currentText = currentText + " before:\"" + str(item.beforeDate.get_date())+"\""
                 elif itemType == "After date":
-                    currentText = currentText + " after:" + str(item.afterDate.get_date())
+                    currentText = currentText + " after:\"" + str(item.afterDate.get_date())+"\""
             except Exception as e:
                 print(f"[HISTORY] Criteria could not be loaded because: {e}")
         self.searchText.set(currentText)
@@ -403,34 +436,115 @@ class History:
         self.searchText.set("")
         self.deleteButton.pack_forget()
         self.search_bar.configure(textvariable=self.defaultText)
+        self.destroyAllItems()
         self.searching=False
+        self.load_history(supressEventGeneration=True)
 
     def search(self, *args):
         query = self.searchText.get() #Original query
         filters = []
+        filterParameters = []
+        self.foundIndicies=[] #Wipe previous results
         word = "" #A single word from the query to find search criteria
         isAFilter = False
+        existingQuotationMark = False
         refinedQuery = "" #Version of the query without advanced search criteria
         wordCount = 0
         for char in query:
             if char == " " and not word == "" and not isAFilter:
-                refinedQuery=refinedQuery+word
+                refinedQuery=refinedQuery+word+" "
                 word = ""
                 wordCount += 1
-            if char == " " and not word == "" and isAFilter:
-                filters[-1].text = word
+            elif char == "\"" and not word == "" and isAFilter and existingQuotationMark:
+                filterParameters.append(word)
                 word = ""
-            if char == " " and word == "" and isAFilter:
+                isAFilter = False
+                existingQuotationMark = False
+            elif char == "\"" and isAFilter and not existingQuotationMark:
+                word=word+char
+                existingQuotationMark=True
+            elif char == "\"" and word == "" and isAFilter and existingQuotationMark:
                 filters.pop(-1)
-            if char == " " and word == "" and not isAFilter:
-                refinedQuery = refinedQuery 
-            if char == ":":
+                isAFilter = False
+            elif char == " " and word == "" and not isAFilter:
+                pass
+            elif char == ":":
                 filters.append(word)
                 word = ""
+                isAFilter = True
             else:
                 word=word+char        
         if wordCount == 0:#Add incomplete words
             refinedQuery = word
         else:
             refinedQuery = refinedQuery+word 
-        print(f"[History] Searching for query {refinedQuery}")
+        print(f"[History] Searching for query \"{refinedQuery}\". {len(filters)} filter(s) found, with {len(filterParameters)} parameter(s) found")
+        # Eliminate everything not applied to filters
+        filteredIndices = []
+        if not filters == []:
+            for i in filters:
+                filteredItems = []
+                currentFilter = i
+                filterNumber = filters.index(i)
+                currentFilterText = filterParameters[filterNumber]
+                print(f"[History] Locating items in filter {currentFilter}")
+                if currentFilter == "url":
+                    self.filterText = currentFilter.strip("\"")
+                    filteredItems = filter(self.checkURL,fileHandler.historyURL)
+                    for i in filteredItems:
+                        filteredIndices.append(fileHandler.historyURL.index(i))
+                elif currentFilter == "title":
+                    self.filterText = currentFilterText.strip("\"")
+                    filteredItems = filter(self.checkURL,fileHandler.historyTitles)
+                    for i in filteredItems:
+                        filteredIndices.append(fileHandler.historyTitles.index(i))
+                elif currentFilter == "dateRange":
+                    dates = currentFilterText.strip(",",3)
+                    self.filterAfterDate = datetime.datetime.strptime(dates[0],"%Y-%m-%d").date()
+                    self.filterBeforeDate = datetime.datetime.strptime(dates[1],"%Y-%m-%d").date()
+                    filteredItems = filter(self.checkDate,fileHandler.historyTimeAccessed)
+                    for i in filteredItems:
+                        filteredIndices.append(fileHandler.historyTimeAccessed.index(i))
+                elif currentFilter == "before":
+                    self.filterBeforeDate = currentFilterText
+                    for i in filteredItems:
+                        filteredIndices.append(fileHandler.historyTimeAccessed.index(i))
+                elif currentFilter == "after":
+                    self.filterAfterDate = currentFilterText
+                    for i in filteredItems:
+                        filteredIndices.append(fileHandler.historyTimeAccessed.index(i))
+        else:
+            filteredIndices = self.allIndices
+        # Now search for everything in urls and titles, not inside a filter
+        print("[History] Locating unfiltered items")
+        if not refinedQuery == "":
+            for i in filteredIndices:
+                if word in fileHandler.historyTitles[i] or word in fileHandler.historyURL[i]:
+                    self.foundIndicies.append(i)
+        else:
+            self.foundIndicies = filteredIndices
+        print(f"[History] {len(self.foundIndicies)} items found")
+        self.currentlyLoadedItems = 0
+        self.targetLoadedItems = 16
+        if not self.searchRenderRunning:
+            self.destroyAllItems()
+            self.load_history(supressEventGeneration=True)
+        else:
+            print("Search still rendering")
+    def checkURL(self,url):
+        return self.filterText in url
+        
+    def checkTitle(self,title):
+        return self.filterText in title
+        
+    def checkDate(self,time):
+        date = datetime.datetime.strptime(time,"%Y-%m-%d %H:%M:%S").date()
+        return date < self.filterBeforeDate and date > self.filterAfterDate
+            
+    def checkDateBefore(self,time):
+        date = datetime.datetime.strptime(time,"%Y-%m-%d %H:%M:%S").date()
+        return date < self.filterBeforeDate
+
+    def checkDateAfter(self,time):
+        date = datetime.datetime.strptime(time,"%Y-%m-%d %H:%M:%S").date()
+        return date > self.filterAfterDate

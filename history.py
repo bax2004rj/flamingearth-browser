@@ -101,14 +101,108 @@ class History:
         self.timeDropdown = ttk.Combobox(self.clearDialog, state='readonly', values=self.times)
         self.timeDropdown.current(4)
         self.timeDropdown.pack(side="top")
+        self.timeDropdown.bind("<<ComboboxSelected>>",self.ClearDropdownChanged)
+
+        self.customRemoveFrame = ttk.LabelFrame(self.clearDialog,text="Custom options")
+        self.fromSearchResults = tkinter.BooleanVar(self.customRemoveFrame)
+        self.fromSearchResultsSwitch = ttk.Checkbutton(self.customRemoveFrame,text="Use search results",style="Switch.TCheckbutton")
+        self.fromSearchResultsSwitch.pack(side="top")
+        self.fromSearchResultsSwitch.bind("<Button-1>",self.ClearFromSearchIconChanged)
+        self.dateRangeText = tkinter.Label(self.customRemoveFrame,text="Date range")
+        self.dateRangeText.pack(side="top")
+        self.afterDate = tkcalendar.DateEntry(self.customRemoveFrame)
+        self.afterDate.pack(side = "left",fill = "x")
+        self.dash = tkinter.Label(self.customRemoveFrame,text="-")
+        self.dash.pack(side="left")
+        self.beforeDate = tkcalendar.DateEntry(self.customRemoveFrame)
+        self.beforeDate.pack(side = "left",fill = "x")
 
         self.buttonFrame = ttk.Frame(self.clearDialog,style="Card.TFrame")
         self.buttonFrame.pack(side="bottom", fill="x")
 
-        self.clearButton = ttk.Button(self.buttonFrame, text="Clear", style="Accent.TButton", command=fileHandler.clearHistory)
+        self.clearButton = ttk.Button(self.buttonFrame, text="Clear", style="Accent.TButton", command=self.searchAndClearHistory)
         self.clearButton.pack(side="right")
         self.cancelButton = ttk.Button(self.buttonFrame, text="Cancel", command=self.clearDialog.destroy)
         self.cancelButton.pack(side="right")
+
+    def ClearDropdownChanged(self,event):
+        if self.timeDropdown.get() == self.times[5]:
+            self.customRemoveFrame.pack(side="top",fill= "both")
+            self.clearDialog.geometry("300x200")
+        else:
+            self.customRemoveFrame.pack_forget()
+            self.clearDialog.geometry("300x100")
+        
+    def ClearFromSearchIconChanged(self,event):
+        if self.fromSearchResults.get():
+            self.afterDate.config(state ="disabled")
+            self.beforeDate.config(state = "disabled")
+        else:
+            self.afterDate.config(state = "normal")
+            self.beforeDate.config(state="normal")
+
+    def searchAndClearHistory(self):
+        item = self.timeDropdown.get()
+        customItemsList = []
+        fromSearchResults = self.fromSearchResults.get()
+        if item == self.times[0]:
+            setDate = datetime.datetime.now() - datetime.timedelta(hours=1)
+            for i, timeStr in enumerate(reversed(fileHandler.historyTimeAccessed)):
+                itemDate = datetime.datetime.strptime(timeStr,"%Y-%m-%d %H:%M:%S")
+                if itemDate < setDate:
+                    setPoint = i
+                    break
+            else:
+                setPoint = 0
+            customItemsList=range(len(fileHandler.historyTimeAccessed)-1,len(fileHandler.historyTimeAccessed)-setPoint,-1)
+        elif item == self.times[1]:
+            setDate = datetime.datetime.now() - datetime.timedelta(days=1)
+            for i, timeStr in enumerate(reversed(fileHandler.historyTimeAccessed)):
+                itemDate = datetime.datetime.strptime(timeStr,"%Y-%m-%d %H:%M:%S")
+                if itemDate < setDate:
+                    setPoint = i
+                    break
+            else:
+                setPoint = 0
+            customItemsList=range(len(fileHandler.historyTimeAccessed)-1,len(fileHandler.historyTimeAccessed)-setPoint,-1)
+        elif item == self.times[2]:
+            setDate = datetime.datetime.now() - datetime.timedelta(days=7)
+            for i, timeStr in enumerate(reversed(fileHandler.historyTimeAccessed)):
+                itemDate = datetime.datetime.strptime(timeStr,"%Y-%m-%d %H:%M:%S")
+                if itemDate < setDate:
+                    setPoint = i
+                    break
+            else:
+                setPoint = 0
+            customItemsList=range(len(fileHandler.historyTimeAccessed)-1,len(fileHandler.historyTimeAccessed)-setPoint,-1)
+        elif item == self.times[3]:
+            setDate = datetime.datetime.now() - datetime.timedelta(weeks=4)
+            for i, timeStr in enumerate(reversed(fileHandler.historyTimeAccessed)):
+                itemDate = datetime.datetime.strptime(timeStr,"%Y-%m-%d %H:%M:%S")
+                if itemDate < setDate:
+                    setPoint = i
+                    break
+            else:
+                setPoint = 0
+            customItemsList=range(len(fileHandler.historyTimeAccessed)-1,len(fileHandler.historyTimeAccessed)-setPoint,-1)
+        elif item == self.times[4]:
+            customItemsList=None
+        elif item == self.times[5] and fromSearchResults and self.searching:
+            customItemsList = self.foundIndicies
+        elif item == self.times[5] and fromSearchResults and not self.searching:
+            messagebox.showerror("Cannot delete history from search results","Your search history cannot be cleared from search results because you have not searched for anything. Enter a search query and try again.")
+            raise ValueError("[HISTORY] Your search history cannot be cleared from search results because you have not searched for anything. Enter a search query and try again.")
+        elif item == self.times[5] and not fromSearchResults:
+            self.filterAfterDate = self.afterDate.get_date()
+            self.filterBeforeDate = self.beforeDate.get_date()
+            filteredItems = filter(self.checkDate,fileHandler.historyTimeAccessed)
+            for i in filteredItems:
+                customItemsList.append(fileHandler.historyTimeAccessed.index(i))
+        self.clearDialog.destroy()
+        fileHandler.clearHistory(customItemsList)
+        self.destroyAllItems()
+        self.load_history()
+        self.showError("Search history successfully deleted.")
 
     def handle_scroll(self, y0, y1):
         self.history_scrollbar.set(y0,y1) # Set scrollbar length

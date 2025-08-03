@@ -210,11 +210,23 @@ def saveIcon(image_data):
     print("[FILEHANDLER] Icon saved successfully.")
     return saveLocation
     
-def clearHistory():
+def clearHistory(customItemsList =None):
     global historyURL, historyTitles, historyIcons, historyTimeAccessed
-    historyURL.clear()
-    historyTitles.clear()
-    historyIcons.clear()
-    historyTimeAccessed.clear()
+    print(customItemsList)
+    if customItemsList == None: #Delete all if no indiciess specified
+        historyURL.clear()
+        historyTitles.clear()
+        historyIcons.clear()
+        historyTimeAccessed.clear()
+    else:
+        for item in customItemsList:
+            try:
+                print(f"[FileHandler] Currently popping {item}")
+                historyURL.pop(item)
+                historyTitles.pop(item)
+                historyIcons.pop(item)
+                historyTimeAccessed.pop(item)
+            except IndexError:
+                print("[FileHandler] Item does not exist.")
     saveHistory()
     print("[FILEHANDLER] History cleared successfully.")

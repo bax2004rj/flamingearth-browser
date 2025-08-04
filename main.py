@@ -2,11 +2,16 @@ import tkinter
 from tkinter import ttk
 import tkinter.messagebox
 import sv_ttk
+import darkdetect
 # Other imports
 import tabFrame
 import customTab
 import fileHandler
+import os
 from PIL import ImageTk as ImageTK
+# OS specific imports
+if os.name == 'nt':
+    import pywinstyles,sys
 
 class main():
     def __init__(self):
@@ -41,7 +46,16 @@ class main():
             sv_ttk.set_theme("dark") # Enable darkmode
         elif fileHandler.darkmode == False and fileHandler.tkinterTheme == "sv_ttk":
             sv_ttk.set_theme("light") # Enable lightmode
-        
+        if os.name == 'nt': # Set windows titlebar color to reflect dark mode (from example in sv_ttk)
+            version = sys.getwindowsversion()
+            if version.major == 10 and version.build >= 22000:
+                pywinstyles.change_header_color(self.app,"#1c1c1c" if fileHandler.darkmode==True else "#fafafa")
+            elif version.major == 10:
+                pywinstyles.apply_style(self.app,"dark" if fileHandler.darkmode==True else "normal")
+
+                self.app.wm_attributes("-alpha",0.99)
+                self.app.wm_attributes("-alpha",1)
+
     def tabAdd(self,page = "http://www.google.com/"): # Create new tab in tabFrame module
         newFrame = ttk.Frame(self.tabs)        
         self.processCount += 1

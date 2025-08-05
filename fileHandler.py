@@ -171,7 +171,9 @@ def saveSettings():
         'newtabDisplayMode': newtabDisplayMode,
         'newtabItems': newtabItems,
         'browserFlags': browserFlags,
-        'homepage': homepage
+        'homepage': homepage,
+        'searchEngine':searchEngine,
+        'searchEngineDefaultSpaceReplacer': searchEngineDefaultSpaceReplacer
     }
     with open(settingsFile, 'w') as file:
         json.dump(settings, file, indent=4)

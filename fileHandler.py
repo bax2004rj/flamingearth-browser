@@ -47,6 +47,8 @@ newtabItems = 8
 browserFlags = []
 
 homepage = "flamingearth://newtab"
+searchEngine = "https://duckduckgo.com/?q="
+searchEngineDefaultSpaceReplacer = "+"
 historyURL = [] # History URL list
 historyTitles = [] # History titles list
 historyIcons = [] # History icons list (locations to icon files)
@@ -60,7 +62,7 @@ downloadSource = [] # Downloads source list
 
 
 def loadSettings():
-    global autodark, darkmode, history, historyDateAccessed, downloads, bookmarks, settingsFile, homepage, notifyForTabsOnQuit, tkinterTheme, displayBookmarks, newtabDisplayMode, newtabItems, browserFlags
+    global autodark, darkmode, downloads, bookmarks, settingsFile, homepage, notifyForTabsOnQuit, tkinterTheme, displayBookmarks, newtabDisplayMode, newtabItems, browserFlags,searchEngine,searchEngineDefaultSpaceReplacer
     # Create appdata directory if it doesn't exist
     if not os.path.exists(appData):
         os.makedirs(appData)
@@ -78,6 +80,8 @@ def loadSettings():
             newtabItems = settings.get('newtabItems', 8)
             browserFlags = settings.get('browserFlags', [])
             homepage = settings.get('homepage', 'flamingearth://newtab')
+            searchEngine = settings.get('searchEngine')
+            searchEngineDefaultSpaceReplacer = settings.get('searchEngineDefaultSpaceReplacer')
             print("[FILEHANDLER] Settings loaded successfully.")
     else:
         # If settings file does not exist, create default settings
@@ -91,7 +95,9 @@ def loadSettings():
             'newtabDisplayMode': newtabDisplayMode,
             'newtabItems': newtabItems,
             'browserFlags': browserFlags,
-            'homepage': homepage
+            'homepage': homepage,
+            'searchEngine':searchEngine,
+            'searchEngineDefaultSpaceReplacer': searchEngineDefaultSpaceReplacer
         }
         with open(settingsFile, 'w') as file:
             json.dump(settings, file, indent=4)

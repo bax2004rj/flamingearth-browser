@@ -1,5 +1,5 @@
 import tkinter
-from tkinter import ttk
+from tkinter import ttk, messagebox
 import datetime
 import newTab
 import browserTab
@@ -8,6 +8,9 @@ import fileHandler
 import history
 from PIL import ImageTk as ImageTK
 import urllib.request
+import subprocess
+import sys
+import os
 
 class newFrame:
     def __init__(self,tabFrame,frameVar,startpage,tabid=0,saveHistory=True):
@@ -114,6 +117,9 @@ class newFrame:
         if not doNotAddToSessionHistory:
             self.AddToSessionHistory()
         print(page)
+        protocol = page.split(":")[0]
+        urlSplit = page.split(".")
+        print(protocol)
         if page[:12] != "flamingearth://newtab":
             try:
                 self.newtab.newTabFrame.pack_forget()
@@ -121,7 +127,7 @@ class newFrame:
                 self.historyFrame.history_frame.pack_forget()
             except Exception:
                 print("Flamingearth protocol frame did not need to be destroyed")
-        if page[:4] == "http" or page[:4] == "file" or page[:5] == "about":
+        if protocol == "http" or protocol == "https" or protocol == "file" or protocol == "about":
             try:
                 self.browserView.showBrowserView()
                 self.zoomButton.configure(state="normal") # Enable zoom menu
@@ -130,25 +136,25 @@ class newFrame:
                 pass   
             self.browserView.changeUrl(page)
             self.zoomButton.configure(state="disabled") # Disable zoom menu
-        elif page[:12] == "flamingearth":
-            subpage = page.split("flamingearth://")[1]
+        elif protocol == "flamingearth":
+            subpage = page.split("/")
             print(subpage)
             self.browserView.hideBrowserView()
             self.hamburgerMenu.entryconfig("Find", state="disabled") # Disable find menu
             self.zoomButton.configure(state="disabled") # Disable zoom menu
-            if subpage == "newtab":
+            if subpage[2] == "newtab":
                 self.newtab.newTabFrame.pack(fill="both", side="top", expand=True)
                 self.settingsFrame.settings_frame.pack_forget()
                 self.historyFrame.history_frame.pack_forget()
                 self.tabTitle = "New Tab"
                 self.loadingDone(fromFlamingearthProtocol=True)
-            elif subpage == "settings":
+            elif subpage[2] == "settings":
                 self.newtab.newTabFrame.pack_forget()
                 self.settingsFrame.settings_frame.pack(fill="both", side="top", expand=True)
                 self.historyFrame.history_frame.pack_forget()
                 self.tabTitle = "Settings"
                 self.loadingDone(fromFlamingearthProtocol=True)
-            elif subpage == "history":
+            elif subpage[2] == "history":
                 self.newtab.newTabFrame.pack_forget()
                 self.settingsFrame.settings_frame.pack_forget()
                 self.historyFrame.history_frame.pack(fill="both", side="top", expand=True)
@@ -162,8 +168,33 @@ class newFrame:
                 self.historyFrame.history_frame.pack_forget()
                 self.browserView.showBrowserView()
                 self.browserView.browser.show_error_page(page,f"{subpage} is not recognized as a valid flamingearth:// URL. Check spelling and try again","404")
+        elif protocol is not None and ":" in page:
+            messageboxOut = messagebox.askokcancel("Confirm URL open", f"The URL \"{page}\" will open in another app. Would you like to continue?")
+            if messageboxOut and sys.platform.startswith("linux"):
+                try:
+                    subprocess.Popen(["xdg-open",page])
+                except Exception as e:
+                    print(f"[TabFrame] Failed to open, gave exception {e}")
+            elif messageboxOut and os.name == "nt":
+                os.startfile(page)
+            elif messageboxOut and sys.platform.startswith("darwin"):
+                try:
+                    subprocess.Popen(["open",page])
+                except Exception as e:
+                    print(f"[TabFrame] Failed to open, gave exception {e}")
+            self.goToPage(page=self.sessionUrls[-2])
+        elif len(urlSplit)==3 and ":" not in page: #Add https:// in front of url without protocol
+            self.goToPage(page="https://"+page)
+        elif len(urlSplit)==2 and ":" not in page: #Add https://www. in front of url without protocol
+            self.goToPage(page="https://www."+page)
+        else: # If it failed everything else, its probably a search query
+            self.goToSearchEngine(page)
         self.refreshButton.configure(text = "↺")
         self.tabFrame.event_generate("<<TabTitleChanged>>")
+
+    def goToSearchEngine(self,page):
+        urlFriendlySearchQuery = page.replace(" ",fileHandler.searchEngineDefaultSpaceReplacer)
+        self.goToPage(page = fileHandler.searchEngine + urlFriendlySearchQuery)
 
     def pageChanged(self,event=None):
         oldUrl = self.currentAddress.get()

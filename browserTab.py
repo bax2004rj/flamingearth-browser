@@ -1,6 +1,8 @@
 import tkinter
 from tkinter import ttk
 from tkinterweb import HtmlFrame
+import time
+import threading
 
 crashHandling = True
 
@@ -58,11 +60,22 @@ class newTab():
         self.findSearchBar.bind("<KeyRelease>",self.find()) # Start searching while typing
         self.closeFindButton = ttk.Button(self.findMenu,text="x",command=self.toggleFindBar)
         self.closeFindButton.pack(side="right")
+        self.stopHoverDetection = False
+        self.hoverDetectionThread = threading.Thread(target=self.hoverDetection)
+        self.hoverDetectionThread.start()
+
     def showBrowserView(self):
         self.browser.pack(fill="both", expand=True)
+        self.stopHoverDetection = False
+        self.hoverDetectionThread = threading.Thread(target=self.hoverDetection)
+        self.hoverDetectionThread.start()
     
     def hideBrowserView(self):
         self.browser.pack_forget()
+        self.stopHoverDetection =  True
+
+    def quitHover(self):
+        self.stopHoverDetection = True
 
     def contextMenu(self,event):
         try:
@@ -147,3 +160,29 @@ class newTab():
         else:
             self.findSelection -= 1 # type: ignore
         self.find()
+    
+
+    def onclose(self):
+        self.hoverDetectionThread = True
+
+    def hoverDetection(self):
+        previousElement = "None"
+        while True:
+            if self.stopHoverDetection:
+                break
+            time.sleep(0.01)
+            try:
+                element = self.browser.get_currently_hovered_element()
+            except tkinter.TclError:
+                element = "None"
+            except RuntimeError:
+                print("[BrowserTab] Updater process did not stop. Attempting to stop now")
+                break
+            try:
+                if getattr(element,"tagname")=="a" and not previousElement == element:
+                    link = getattr(element,"attributes","")
+                    ##print(f"Now hovering over a link, {link}")
+            except AttributeError:
+                print("Mouse left window")
+            previousElement = element
+        print("[BrowserTab] Updater process successfully stopped")

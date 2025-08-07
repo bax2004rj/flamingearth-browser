@@ -16,15 +16,21 @@ class customTab(ttk.Notebook):
         self._active = None
 
         self.bind("<ButtonPress-1>", self.on_close_press, True)
-        self.bind("<ButtonRelease-1>", self.on_close_release)
-
+        self.bind("<ButtonRelease-1>",self.on_close_release)
+        self.beforeCloseFunction = self.nothing(None)
         # New tab button
         self.newtab = ttk.Button(self, text="+")
         self.newtab.place(relx=1.0, rely=0.0, anchor='ne', x=-5, y=5)
 
+    def nothing(self,event=None,index=None): #Do nothing as default item.
+        pass
+
     ## Bind newtab to command, since *args and **kwargs doesn't like having a "command" parameter next to it
     def bind_newtab(self,command):
         self.newtab.configure(command=command)
+
+    def bind_close(self,command):
+        self.beforeCloseFunction = command
 
     def on_close_press(self, event):
         """Called when the button is pressed over the close button"""
@@ -50,6 +56,7 @@ class customTab(ttk.Notebook):
         index = self.index("@%d,%d" % (event.x, event.y))
 
         if self._active == index:
+            self.beforeCloseFunction(event,index)
             self.forget(index)
             self.event_generate("<<NotebookTabClosed>>")
 

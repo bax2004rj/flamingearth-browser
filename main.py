@@ -8,6 +8,7 @@ import tabFrame
 import customTab
 import fileHandler
 import os
+import time
 from PIL import ImageTk as ImageTK
 # OS specific imports
 if os.name == 'nt':
@@ -38,7 +39,8 @@ class main():
         self.processCount = 0 
         self.homepage = "flamingearth://newtab"
         self.app.bind("<<TabTitleChanged>>",self.tabEdit)
-        self.app.bind("<<NotebookTabClosed>>",self.checkToQuit)
+        ##self.app.bind("<<NotebookTabClosed>>",self.checkToQuit)
+        self.tabs.bind_close(self.checkToQuit)
         self.app.protocol("WM_DELETE_WINDOW",self.onQuit)
 
     def setDarkmode(self):
@@ -81,9 +83,11 @@ class main():
         except Exception as e:
             print(f"[Main] Error editing tab title: {e}")
     
-    def checkToQuit(self,event):
+    def checkToQuit(self,event,index):
         print("[Main] Tab closed event received")
-        if len(self.tabs.tabs()) == 0:
+        self.tabProcesses[index].browserView.quitHover()
+        ##time.sleep(0.1) #Delay quitting to make sure hover detection has enough to do its last check
+        if len(self.tabs.tabs())-1 == 0:
             self.app.quit()
         else:
             print("[Main] There are ", len(self.tabs.tabs()), " tabs remaining")

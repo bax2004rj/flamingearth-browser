@@ -98,6 +98,10 @@ class main():
         if fileHandler.notifyForTabsOnQuit != -1 and openTabs >= fileHandler.notifyForTabsOnQuit:
             continueClosing = tkinter.messagebox.askyesno("Confirm close", f"There are still {openTabs} tabs open. Are you sure you want to continue closing?")
             if continueClosing == True:
+                for i in self.tabProcesses:
+                    i.browserView.quitHover()
+                    print(f"[MAIN] Shut down tab {self.tabProcesses.index(i)}")
+                time.sleep(0.1)
                 self.app.destroy()
 
     def __enter__(self):

@@ -60,15 +60,19 @@ class newTab():
         self.findSearchBar.bind("<KeyRelease>",self.find()) # Start searching while typing
         self.closeFindButton = ttk.Button(self.findMenu,text="x",command=self.toggleFindBar)
         self.closeFindButton.pack(side="right")
+        
+        self.tab = tab
+        self.urlLabel = tkinter.Label(tab)
         self.stopHoverDetection = False
         self.hoverDetectionThread = threading.Thread(target=self.hoverDetection)
         self.hoverDetectionThread.start()
 
     def showBrowserView(self):
         self.browser.pack(fill="both", expand=True)
-        self.stopHoverDetection = False
-        self.hoverDetectionThread = threading.Thread(target=self.hoverDetection)
-        self.hoverDetectionThread.start()
+        if self.stopHoverDetection == True:
+            self.stopHoverDetection = False
+            self.hoverDetectionThread = threading.Thread(target=self.hoverDetection)
+            self.hoverDetectionThread.start()
     
     def hideBrowserView(self):
         self.browser.pack_forget()
@@ -179,10 +183,13 @@ class newTab():
                 print("[BrowserTab] Updater process did not stop. Attempting to stop now")
                 break
             try:
-                if getattr(element,"tagname")=="a" and not previousElement == element:
+                if getattr(element,"tagName")=="a" and not previousElement == element:
                     link = getattr(element,"attributes","")
-                    ##print(f"Now hovering over a link, {link}")
+                    self.urlLabel.configure(text=link["href"])
+                    self.urlLabel.place(anchor="sw",x=0,y=self.tab.winfo_height())
+                else:
+                    self.urlLabel.place_forget()
             except AttributeError:
-                print("Mouse left window")
+                pass
             previousElement = element
         print("[BrowserTab] Updater process successfully stopped")

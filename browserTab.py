@@ -63,6 +63,7 @@ class newTab():
         
         self.tab = tab
         self.urlLabel = tkinter.Label(tab)
+        self.altTextLabel = tkinter.Label(tab)
         self.stopHoverDetection = False
         self.hoverDetectionThread = threading.Thread(target=self.hoverDetection)
         self.hoverDetectionThread.start()
@@ -191,5 +192,18 @@ class newTab():
                     self.urlLabel.place_forget()
             except AttributeError:
                 pass
+            try:
+                if getattr(element,"attributes")["title"] is not None and not previousElement == element:
+                    altText = getattr(element,"attributes")["title"]
+                    cx,cy = self.tab.winfo_pointerxy()
+                    self.altTextLabel.configure(text=altText)
+                    self.altTextLabel.place(anchor="nw",x = cx+5,y = cy+5)
+                else:
+                    self.altTextLabel.place_forget()
+            except AttributeError:
+                pass
+            except KeyError:
+                self.altTextLabel.place_forget()
+            # TODO for future: Add different versions of the context menu for differnt items
             previousElement = element
         print("[BrowserTab] Updater process successfully stopped")

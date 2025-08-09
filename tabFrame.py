@@ -11,12 +11,16 @@ import urllib.request
 import subprocess
 import sys
 import os
+import threading
 
 class newFrame:
     def __init__(self,tabFrame,frameVar,startpage,tabid=0,saveHistory=True):
         self.homepage = startpage
         self.sessionTitles = []
         self.sessionUrls = []
+
+        self.historyItems = [] #History items built on pre-sorted list, but also ocntaining titles
+
         self.sessionBacks = tkinter.IntVar(tabFrame,-2)
         self.sessionMenuNumber = tkinter.IntVar(tabFrame, 0)
         self.doNotClearForwardHistory = False
@@ -27,6 +31,9 @@ class newFrame:
         self.tabIconURL = None
         self.iconFile = fileHandler.noIcon
         self.tabIcon = ImageTK.PhotoImage(file=self.iconFile)
+
+        self.historyGrabber = threading.Thread(target=self.loadHistoryObjects)
+        self.historyGrabber.start()
 
         self.addressObject = tkinter.Frame(tabFrame)
         self.addressObject.pack(side = "top",fill = "x")
@@ -44,7 +51,8 @@ class newFrame:
         self.backbutton.bind("<Button-3>",self.showBackMenu)
         self.backbutton.bind("<Button-3>",self.showBackMenu)
 
-        self.addressBar = ttk.Combobox(self.addressObject,textvariable = self.currentAddress,values = self.sessionUrls)
+        self.addressBar = ttk.Combobox(self.addressObject,textvariable = self.currentAddress,values = self.historyItems)
+        self.addressBar.bind("<<ComboboxSelected>>",self.convertAndGo)
         self.addressBar.bind("<Return>",self.goToPage)
         self.addressBar.pack(fill = "x")
 
@@ -108,6 +116,12 @@ class newFrame:
         self.historyFrame.history_list.bind("<<DoneLoading>>",lambda e:self.loadingDone(fromFlamingearthProtocol=True)) # Bind history loaded event to loadingDone method
 
         self.goToPage(page = startpage)
+
+    def convertAndGo(self,event=None): #Take in combobox input when quick item selected and go to page
+        item = self.addressBar.get()
+        index = self.historyItems.index(item)
+        self.addressBar.set(fileHandler.historyRanked[index])
+        self.goToPage()
 
     def goToPage(self,event=None,page = None, doNotAddToSessionHistory = False, doNotAddToHistory = False): #Handle going to page
         if page == None:
@@ -347,3 +361,8 @@ class newFrame:
             self.backbutton.configure(state="disabled")
             self.backbutton.update()
         self.sessionBacks.set(0-(len(self.sessionTitles)-self.sessionMenuNumber.get()))
+
+    def loadHistoryObjects(self):
+        for item in fileHandler.historyRanked:
+            originalIndex = fileHandler.historyURL.index(item)
+            self.historyItems.append(f"{fileHandler.historyTitles[originalIndex]} ({item})")

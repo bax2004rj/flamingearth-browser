@@ -1,6 +1,8 @@
 import os
 import darkdetect
 import json
+from collections import Counter
+from itertools import repeat, chain
 
 ## Get icon file locations
 cwd = os.getcwd()
@@ -53,6 +55,7 @@ historyURL = [] # History URL list
 historyTitles = [] # History titles list
 historyIcons = [] # History icons list (locations to icon files)
 historyTimeAccessed = [] # History date accessed list
+historyRanked = [] #History list, sorted by most visted url
 bookmarks = [] # Bookmarks url list
 bookmarksTitles = [] # Bookmarks titles list
 bookmarksIcons = [] # Bookmarks icons list (locations to icon files)
@@ -108,7 +111,7 @@ def loadSettings():
            print("[FILEHANDLER] Dark mode is set to:", darkmode)
     
 def loadHistory():
-    global historyFile,historyURL,historyTitles,historyIcons, historyTimeAccessed
+    global historyFile,historyURL,historyTitles,historyIcons, historyTimeAccessed, historyRanked
     if os.path.exists(historyFile):
         with open(historyFile, 'r') as file:
             historyJson = json.load(file)
@@ -116,6 +119,7 @@ def loadHistory():
             historyTitles = historyJson.get('historyTitles',[])
             historyIcons = historyJson.get('historyIcons', [])
             historyTimeAccessed = historyJson.get('historyTimeAccessed', [])
+            historyRanked = list(set(chain.from_iterable(repeat(i, c) for i,c in Counter(historyURL).most_common())))
     else:
         historyFileOut = {
             'historyURL': historyURL,

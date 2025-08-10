@@ -115,6 +115,8 @@ class newFrame:
         self.historyFrame.history_list.bind("<<HistoryURLClicked>>", self.historyClicked) # Bind history URL clicked event to goToPage method
         self.historyFrame.history_list.bind("<<DoneLoading>>",lambda e:self.loadingDone(fromFlamingearthProtocol=True)) # Bind history loaded event to loadingDone method
 
+        self.newtab.newTabFrame.bind("<<URLChanged>>",self.newTabClick)
+
         self.goToPage(page = startpage)
 
     def convertAndGo(self,event=None): #Take in combobox input when quick item selected and go to page
@@ -219,6 +221,11 @@ class newFrame:
             self.ClearForwardHistory()
             self.backbutton.configure(state="normal") # Enable back button     
             self.AddToSessionHistory()
+
+    def newTabClick(self,event=None):
+        url = self.newtab.chosenURL
+        print("[TABFRAME] New Tab URL clicked:", url)
+        self.goToPage(page=url)
 
     def historyClicked(self,event=None):
         historyURL = self.historyFrame.historyURL

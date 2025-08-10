@@ -10,6 +10,7 @@ import fileHandler
 import os
 import time
 from PIL import ImageTk as ImageTK
+import threading
 # OS specific imports
 if os.name == 'nt':
     import pywinstyles,sys
@@ -65,7 +66,7 @@ class main():
         self.tabVars.append(tkinter.StringVar(self.app,"New Tab"))
         self.tabFrames.append(newFrame)
         self.tabObjects.append(newtab) # Formerly textVariable = self.tabVars[-1]
-        self.tabProcesses.append(tabFrame.newFrame(self.tabFrames[-1],self.tabVars[-1],self.homepage,self.processCount))
+        self.tabProcesses.append(tabFrame.newFrame(self.tabFrames[-1],self.tabVars[-1],self.homepage,self.processCount)) #Future TODO: Open in thread
 
         print ("New tab generated (process id: %d)"% self.processCount)
 

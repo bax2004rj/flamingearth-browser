@@ -14,43 +14,12 @@ class newTab():
         self.newestImages = []
         self.newestImageData = []
         self.ShowAmount = 8
+        self.chosenURL = "about:blank"
         # Internal var
         newestObjectText = ""
         # Frame
         self.newTabFrame = tkinter.Frame(tab)
 
-        # UI elements 
-        self.addressObject = tkinter.Frame(self.newTabFrame)
-        self.addressObject.pack(side = "top",fill = "x")
-        
-        self.currentAddress = tkinter.StringVar(self.newTabFrame,value = startpage)
-
-        self.historyMenu = tkinter.Menu(self.addressObject)
-        self.historyMenu.add_command(label="Clear history")
-
-        self.downloadMenu = tkinter.Menu(self.addressObject)
-        self.downloadMenu.add_command(label="Clear downloads")
-
-        self.zoom = 1
-
-        self.zoomMenu = tkinter.Menu(self.addressObject)
-        self.zoomMenu.add_command(label="Zoom level: 100%",state="disabled")
-        self.zoomMenu.add_command(label="+25%")
-        self.zoomMenu.add_command(label="Reset")
-        self.zoomMenu.add_command(label="-25%")
-
-        self.bookmarksMenu = tkinter.Menu(self.addressObject)
-
-        self.hamburgerMenu = tkinter.Menu(self.addressObject)
-        self.hamburgerMenu.add_command(label="New tab")
-        self.hamburgerMenu.add_command(label="New window")
-        self.hamburgerMenu.add_separator()
-        self.hamburgerMenu.add_cascade(label="History",menu=self.historyMenu)
-        self.hamburgerMenu.add_cascade(label="Downloads",menu=self.downloadMenu)
-        self.hamburgerMenu.add_cascade(label="Bookmarks",menu=self.bookmarksMenu)
-        self.hamburgerMenu.add_separator()
-        self.hamburgerMenu.add_command(label="Find")
-        self.hamburgerMenu.add_cascade(label="Zoom",menu=self.zoomMenu,state="disabled")
         # New tab design
 
         self.splashText = ttk.Label(self.newTabFrame,text="Flamingearth Browser",font=("TkDefaultFont",32))
@@ -75,17 +44,26 @@ class newTab():
             self.columnFrames[r].pack(side = "top",expand =1)
             for c in range(4):
                 i = c+(4*r)
-                if i<len(self.PopularPages):
-                    newestObjectText = self.PopularPages[i]
-                    self.newestImageData.append(Image.open(fileHandler.noIcon))
-                    self.newestImages.append(ImageTk.PhotoImage(image=self.newestImageData[i]))
-                    print("Preset success")
+                url = "about:blank"
+                historyItem = 0
+                title = "Unset"
+                icon = tkinter.PhotoImage(file=fileHandler.historyIcons[historyItem])
+                if i<len(fileHandler.historyRanked):
+                    url = fileHandler.historyRanked[i]
+                    historyItem = fileHandler.historyURL.index(url)
+                    title = fileHandler.historyTitles[historyItem]
+                    icon = tkinter.PhotoImage(file=fileHandler.historyIcons[historyItem])
+                    self.newestImages.append(icon)
                 else:
-                    newestObjectText = "Unset"
+                    title = "Unset"
                     self.newestImageData.append(Image.open(fileHandler.noShortcut))
                     self.newestImages.append(ImageTk.PhotoImage(image=self.newestImageData[i]))
-                self.ShortcutButtons.append(ttk.Button(self.columnFrames[-1],text=newestObjectText,image=self.newestImages[i],compound="top"))
-                self.ShortcutButtons[-1].pack(side = "left")
+                self.ShortcutButtons.append(ttk.Button(self.columnFrames[-1],text=title,image=icon,compound="top",command=lambda page = url:self.goToPage(page),width=8))
+                self.ShortcutButtons[-1].pack(side = "left",padx = 5,pady = 5)
 
         self.quickAccess = ttk.Button()
 
+    def goToPage(self,page):
+        print(f"[NewTab] URL clicked {page}")
+        self.chosenURL = page
+        self.newTabFrame.event_generate("<<URLChanged>>")

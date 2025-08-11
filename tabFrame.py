@@ -6,7 +6,7 @@ import browserTab
 import settings
 import fileHandler
 import history
-from PIL import ImageTk as ImageTK
+from PIL import Image, ImageTk as ImageTK
 import urllib.request
 import subprocess
 import sys
@@ -20,7 +20,9 @@ class newFrame:
         self.sessionUrls = []
 
         self.historyItems = [] #History items built on pre-sorted list, but also ocntaining titles
-
+        self.reversedHistoryItems = list(reversed(fileHandler.historyTitles))
+        self.historyMenuImages = []
+    
         self.sessionBacks = tkinter.IntVar(tabFrame,-2)
         self.sessionMenuNumber = tkinter.IntVar(tabFrame, 0)
         self.doNotClearForwardHistory = False
@@ -57,6 +59,15 @@ class newFrame:
         self.addressBar.pack(fill = "x")
 
         self.historyMenu = tkinter.Menu(self.addressBar)
+        for i in range(10):
+            try:
+                url = fileHandler.historyURL[len(fileHandler.historyURL)-i-1]
+                self.historyMenuImages.append(ImageTK.PhotoImage(Image.open(fileHandler.historyIcons[len(fileHandler.historyURL)-i-1]).resize([16,16])))
+                self.historyMenu.add_command(label=self.reversedHistoryItems[i],command=lambda:self.goToPage(page=url),image=self.historyMenuImages[i])
+                ##print(self.reversedHistoryItems[i])
+            except IndexError:
+                break
+        self.historyMenu.add_separator()
         self.historyMenu.add_command(label="View history", command=lambda: self.goToPage(page = "flamingearth://history"))
         self.historyMenu.add_command(label="Clear history")
 

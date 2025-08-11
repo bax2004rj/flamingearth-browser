@@ -197,7 +197,7 @@ class newTab():
                     altText = getattr(element,"attributes")["title"]
                     cx,cy = self.tab.winfo_pointerxy()
                     self.altTextLabel.configure(text=altText)
-                    self.altTextLabel.place(anchor="nw",x = cx+5,y = cy+5)
+                    self.altTextLabel.place(anchor="nw",x = cx,y = cy)
                 else:
                     self.altTextLabel.place_forget()
             except AttributeError:

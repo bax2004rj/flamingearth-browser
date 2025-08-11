@@ -197,13 +197,15 @@ class newTab():
                     altText = getattr(element,"attributes")["title"]
                     cx,cy = self.tab.winfo_pointerxy()
                     self.altTextLabel.configure(text=altText)
-                    self.altTextLabel.place(anchor="nw",x = cx,y = cy)
+                    self.altTextLabel.place(anchor="nw",x = cx+8,y = cy-64)
                 else:
                     self.altTextLabel.place_forget()
             except AttributeError:
                 pass
             except KeyError:
                 self.altTextLabel.place_forget()
+            except tkinter.TclError:
+                pass
             # TODO for future: Add different versions of the context menu for differnt items
             previousElement = element
         print("[BrowserTab] Updater process successfully stopped")

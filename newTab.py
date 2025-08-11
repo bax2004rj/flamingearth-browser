@@ -47,17 +47,22 @@ class newTab():
                 url = "about:blank"
                 historyItem = 0
                 title = "Unset"
-                icon = tkinter.PhotoImage(file=fileHandler.historyIcons[historyItem])
+                icon = tkinter.PhotoImage(file=fileHandler.noIcon)
                 if i<len(fileHandler.historyRanked):
-                    url = fileHandler.historyRanked[i]
-                    historyItem = fileHandler.historyURL.index(url)
-                    title = fileHandler.historyTitles[historyItem]
-                    icon = tkinter.PhotoImage(file=fileHandler.historyIcons[historyItem])
-                    self.newestImages.append(icon)
+                    try:
+                        url = fileHandler.historyRanked[i]
+                        historyItem = fileHandler.historyURL.index(url)
+                        title = fileHandler.historyTitles[historyItem]
+                        icon = tkinter.PhotoImage(file=fileHandler.historyIcons[historyItem])
+                        self.newestImages.append(icon)
+                    except IndexError:
+                        title = "Unset"
+                        self.newestImageData.append(Image.open(fileHandler.noShortcut))
+                        self.newestImages.append(ImageTk.PhotoImage(image=self.newestImageData[i]))
                 else:
                     title = "Unset"
-                    self.newestImageData.append(Image.open(fileHandler.noShortcut))
-                    self.newestImages.append(ImageTk.PhotoImage(image=self.newestImageData[i]))
+                    self.newestImageData.append(icon)
+                    self.newestImages.append(icon)
                 self.ShortcutButtons.append(ttk.Button(self.columnFrames[-1],text=title,image=icon,compound="top",command=lambda page = url:self.goToPage(page),width=8))
                 self.ShortcutButtons[-1].pack(side = "left",padx = 5,pady = 5)
 

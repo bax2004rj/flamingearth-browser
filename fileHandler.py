@@ -39,6 +39,7 @@ downloadsFile = os.path.join(appData,"downloads.json")
 autodark = True # Automatically detect dark mode
 darkmode = False # Dark mode autodetect by default
 tkinterTheme = "sv_ttk" # Theme for tkinter, sv_ttk is the default
+menuBar = False # Show menu bar. On MacOS, this setting cannot be turned off
 
 displayBookmarks = True # Display bookmarks in the address bar
 notifyForTabsOnQuit = 0 # Notify user if tabs are open on quit. -1 = no notification, 0 = always ask, 1 <= ask if there are more tabs open than threshold  
@@ -65,7 +66,7 @@ downloadSource = [] # Downloads source list
 
 
 def loadSettings():
-    global autodark, darkmode, downloads, bookmarks, settingsFile, homepage, notifyForTabsOnQuit, tkinterTheme, displayBookmarks, newtabDisplayMode, newtabItems, browserFlags,searchEngine,searchEngineDefaultSpaceReplacer
+    global autodark, darkmode, menuBar, downloads, bookmarks, settingsFile, homepage, notifyForTabsOnQuit, tkinterTheme, displayBookmarks, newtabDisplayMode, newtabItems, browserFlags,searchEngine,searchEngineDefaultSpaceReplacer
     # Create appdata directory if it doesn't exist
     if not os.path.exists(appData):
         os.makedirs(appData)
@@ -77,6 +78,7 @@ def loadSettings():
             autodark = settings.get('autodark', True)
             darkmode = settings.get('darkmode', False)
             tkinterTheme = settings.get('tkinterTheme', 'sv_ttk')
+            menuBar = settings.get('menuBar', False)
             displayBookmarks = settings.get('displayBookmarks', True)
             notifyForTabsOnQuit = settings.get('notifyForTabsOnQuit', 0)
             newtabDisplayMode = settings.get('newtabDisplayMode', 'mostVisited')
@@ -93,6 +95,7 @@ def loadSettings():
             'autodark': autodark,
             'darkmode': darkmode,
             'tkinterTheme': tkinterTheme,
+            'menuBar': menuBar,
             'displayBookmarks': displayBookmarks,
             'notifyForTabsOnQuit': notifyForTabsOnQuit,
             'newtabDisplayMode': newtabDisplayMode,
@@ -170,6 +173,7 @@ def saveSettings():
         'autodark': autodark,
         'darkmode': darkmode,
         'tkinterTheme': tkinterTheme,
+        'menuBar': menuBar,
         'displayBookmarks': displayBookmarks,
         'notifyForTabsOnQuit': notifyForTabsOnQuit,
         'newtabDisplayMode': newtabDisplayMode,

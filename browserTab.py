@@ -172,7 +172,7 @@ class newTab():
 
     def hoverDetection(self):
         previousElement = "None"
-        while True:
+        while self.stopHoverDetection==False:
             if self.stopHoverDetection:
                 break
             time.sleep(0.01)
@@ -191,6 +191,8 @@ class newTab():
                 else:
                     self.urlLabel.place_forget()
             except AttributeError:
+                pass
+            except tkinter.TclError:
                 pass
             try:
                 if getattr(element,"attributes")["title"] is not None and not previousElement == element:

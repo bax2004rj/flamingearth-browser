@@ -1,6 +1,5 @@
 import tkinter
-from tkinter import ttk
-import tkinter.messagebox
+from tkinter import ttk, messagebox, filedialog
 import sv_ttk
 import darkdetect
 # Other imports
@@ -83,38 +82,37 @@ class main():
             self.fileMenu.add_command(label="New tab",command=self.tabAdd)
             self.fileMenu.add_command(label="New window")
             self.fileMenu.add_separator()
-            self.fileMenu.add_command(label="Open file")
-            self.fileMenu.add_command(label="Open location")
+            self.fileMenu.add_command(label="Open file",command=self.openFile)
+            self.fileMenu.add_command(label="Open location",command=self.openLocation)
             self.fileMenu.add_separator()
-            self.fileMenu.add_command(label="Close tab")
+            self.fileMenu.add_command(label="Close tab",command=self.closeTab)
             self.fileMenu.add_command(label="Close window",command=self.onQuit)
 
             self.editMenu = tkinter.Menu(self.app)
-            self.editMenu.add_command(label="Undo")
-            self.editMenu.add_command(label="Redo")
             self.editMenu.add_separator()
-            self.editMenu.add_command(label="Cut")
             self.editMenu.add_command(label="Copy")
-            self.editMenu.add_command(label="Paste")
             self.editMenu.add_separator()
-            self.editMenu.add_command(label="Find in page")
+            self.editMenu.add_command(label="Find in page", command=self.find)
 
             self.viewMenu = tkinter.Menu(self.app)
-            self.viewMenu.add_command(label="Zoom in")
-            self.viewMenu.add_command(label="Zoom out")
-            self.viewMenu.add_command(label="Reset zoom")
+            self.viewMenu.add_command(label="Zoom in",command=self.zoomIn)
+            self.viewMenu.add_command(label="Zoom out",command=self.zoomOut)
+            self.viewMenu.add_command(label="Reset zoom",command=self.zoomReset)
             self.viewMenu.add_separator()
-            self.viewMenu.add_command(label="Reload/stop page")
+            self.viewMenu.add_command(label="Reload/stop page",command=self.reload)
+            self.viewMenu.add_separator()
+            self.viewMenu.add_command(label="Back",command=self.back)
+            self.viewMenu.add_command(label="Forward",command=self.forward)
 
             self.bookmarksMenu = tkinter.Menu(self.app)
 
             self.tabsMenu = tkinter.Menu(self.app)
             self.tabsMenu.add_command(label="New Tab",command=self.tabAdd)
-            self.tabsMenu.add_command(label="Close Tab")
+            self.tabsMenu.add_command(label="Close Tab",command=self.closeTab)
 
             self.helpMenu = tkinter.Menu(self.app)
-            self.helpMenu.add_command(label = "Flamingearth Help")
-            self.helpMenu.add_command(label = "About Flamingearth")
+            self.helpMenu.add_command(label = "Flamingearth Help",command=lambda:self.goToPage("flamingearth://help"))
+            self.helpMenu.add_command(label = "About Flamingearth",command=lambda:self.goToPage("flamingearth://about"))
 
             self.menu.add_cascade(label="File",menu = self.fileMenu)
             self.menu.add_cascade(label="Edit",menu = self.editMenu)
@@ -151,10 +149,54 @@ class main():
         except Exception as e:
             print(f"[Main] Error editing tab title: {e}")
 
-    def goToPage(self,page): #Communicate to actiely selected tab it should go somewhere.
-        print(f"[Main] User requested to go to {page}")
+    # Menu button command bindings
+    def openFile(self):
+        file = "file:/" + filedialog.askopenfilename()
+        self.goToPage(file)
+
+    def openLocation(self):
         currentTab=self.tabs.index(self.tabs.select())
+        self.tabProcesses[currentTab].addressBar.focus()
+
+    def goToPage(self,page): #Communicate to actiely selected tab it should go somewhere.
+        currentTab=self.tabs.index(self.tabs.select())
+        print(f"[Main] User requested to go to {page}. They are on tab {currentTab}")
+        self.tabProcesses[currentTab].goToPage(page=page)
+
+    def zoomIn(self):
+        currentTab=self.tabs.index(self.tabs.select())
+        self.tabProcesses[currentTab].browserView.zoomIn(self.tabProcesses[currentTab].zoomMenu,self.tabProcesses[currentTab].zoomButton)
     
+    def zoomOut(self):
+        currentTab=self.tabs.index(self.tabs.select())
+        self.tabProcesses[currentTab].browserView.zoomOut(self.tabProcesses[currentTab].zoomMenu,self.tabProcesses[currentTab].zoomButton)
+
+    def zoomReset(self):
+        currentTab=self.tabs.index(self.tabs.select())
+        self.tabProcesses[currentTab].browserView.zoomReset(self.tabProcesses[currentTab].zoomMenu,self.tabProcesses[currentTab].zoomButton)
+
+    def reload(self):
+        currentTab=self.tabs.index(self.tabs.select())
+        self.tabProcesses[currentTab].browserView.reload()
+
+    def back(self):
+        currentTab=self.tabs.index(self.tabs.select())
+        self.tabProcesses[currentTab].back()
+    
+    def forward(self):
+        currentTab=self.tabs.index(self.tabs.select())
+        self.tabProcesses[currentTab].forward()
+    
+    def closeTab(self):
+        currentTab=self.tabs.index(self.tabs.select())
+        self.tabs.beforeCloseFunction(None,currentTab)
+        self.tabs.forget(currentTab)
+        self.tabs.event_generate("<<NotebookTabClosed>>")
+
+    def find(self):
+        currentTab=self.tabs.index(self.tabs.select())
+        self.tabProcesses[currentTab].browserView.toggleFindBar() 
+
     def checkToQuit(self,event,index):
         print("[Main] Tab closed event received")
         self.tabProcesses[index].browserView.quitHover()
@@ -168,7 +210,7 @@ class main():
         print ("Exiting...")
         openTabs = len(self.tabs.tabs())
         if fileHandler.notifyForTabsOnQuit != -1 and openTabs >= fileHandler.notifyForTabsOnQuit:
-            continueClosing = tkinter.messagebox.askyesno("Confirm close", f"There are still {openTabs} tabs open. Are you sure you want to continue closing?")
+            continueClosing = messagebox.askyesno("Confirm close", f"There are still {openTabs} tabs open. Are you sure you want to continue closing?")
             if continueClosing == True:
                 for i in self.tabProcesses:
                     i.browserView.quitHover()

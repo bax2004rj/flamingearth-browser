@@ -52,6 +52,7 @@ class main():
         self.tabFrames = []
         self.tabVars = []
         self.tabProcesses = []
+        self.selectedTab = tkinter.StringVar(self.app,"New Tab")
         self.processCount = 0 
         self.homepage = "flamingearth://newtab"
         self.app.bind("<<TabTitleChanged>>",self.tabEdit)
@@ -107,6 +108,7 @@ class main():
             self.bookmarksMenu = tkinter.Menu(self.app)
 
             self.tabsMenu = tkinter.Menu(self.app)
+            self.tabsMenu.add_separator()
             self.tabsMenu.add_command(label="New Tab",command=self.tabAdd)
             self.tabsMenu.add_command(label="Close Tab",command=self.closeTab)
 
@@ -132,7 +134,7 @@ class main():
         self.tabFrames.append(newFrame)
         self.tabObjects.append(newtab) # Formerly textVariable = self.tabVars[-1]
         self.tabProcesses.append(tabFrame.newFrame(self.tabFrames[-1],self.tabVars[-1],self.historyMenu,self.homepage,self.processCount)) #Future TODO: Open in thread
-
+        self.tabsMenu.insert_radiobutton(self.processCount,label= "New Tab", value="New Tab",variable=self.selectedTab)
         print ("New tab generated (process id: %d)"% self.processCount)
 
     def tabEdit(self,event):
@@ -145,6 +147,11 @@ class main():
             print(newIcon)
             self.tabs.tab(event.widget, text=newTitle, image = newIcon)  # event.data[0] is the new title
             self.tabs.update()
+            if self.tabsMenu.cget("tearoff")==True:  
+                self.tabsMenu.entryconfig(frameID+1,label = newTitle,value=newTitle)
+            else:
+                self.tabsMenu.entryconfig(frameID,label = newTitle,value=newTitle)
+            self.selectedTab.set(newTitle)
             print("[Main] Tab title successfully edited")
         except Exception as e:
             print(f"[Main] Error editing tab title: {e}")
@@ -197,14 +204,16 @@ class main():
         currentTab=self.tabs.index(self.tabs.select())
         self.tabProcesses[currentTab].browserView.toggleFindBar() 
 
+    # Exit checks
     def checkToQuit(self,event,index):
         print("[Main] Tab closed event received")
+
         self.tabProcesses[index].browserView.quitHover()
-        ##time.sleep(0.1) #Delay quitting to make sure hover detection has enough to do its last check
         if len(self.tabs.tabs())-1 == 0:
             self.app.quit()
         else:
             print("[Main] There are ", len(self.tabs.tabs()), " tabs remaining")
+        self.tabsMenu.delete(index)
 
     def onQuit(self):
         print ("Exiting...")

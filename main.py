@@ -40,12 +40,20 @@ class main():
                 break
         self.historyMenu.add_separator()
         self.historyMenu.add_command(label="View history", command=lambda: self.goToPage(page = "flamingearth://history"))
-        self.historyMenu.add_command(label="Clear history")
+        self.historyMenu.add_command(label="Clear history",command=lambda: self.goToPage(page = "flamingearth://history/delete"))
+        
+        self.tabsMenu = tkinter.Menu(self.app)
+        self.tabsMenu.add_separator()
+        self.tabsMenu.add_command(label="New Tab",command=self.tabAdd)
+        self.tabsMenu.add_command(label="Close Tab",command=self.closeTab)
+
         self.addMenu()
 
         self.tabs = customTab.customTab(self.app) # Create tabs
         self.tabs.pack(fill="both",expand=1)
         self.tabs.bind_newtab(self.tabAdd)
+        self.tabs.bind_close(self.checkToQuit)
+        self.tabs.bind("<<NotebookTabChanged>>",self.changeTab)
 
         self.tabImage = ImageTK.PhotoImage(file=fileHandler.noIcon) # Default tab icon
         self.tabObjects = []
@@ -53,11 +61,11 @@ class main():
         self.tabVars = []
         self.tabProcesses = []
         self.selectedTab = tkinter.StringVar(self.app,"New Tab")
+        self.selectedTab.trace_add('write',self.selectNewTab)
         self.processCount = 0 
         self.homepage = "flamingearth://newtab"
         self.app.bind("<<TabTitleChanged>>",self.tabEdit)
         ##self.app.bind("<<NotebookTabClosed>>",self.checkToQuit)
-        self.tabs.bind_close(self.checkToQuit)
         self.app.protocol("WM_DELETE_WINDOW",self.onQuit)
 
     def setDarkmode(self):
@@ -107,10 +115,7 @@ class main():
 
             self.bookmarksMenu = tkinter.Menu(self.app)
 
-            self.tabsMenu = tkinter.Menu(self.app)
-            self.tabsMenu.add_separator()
-            self.tabsMenu.add_command(label="New Tab",command=self.tabAdd)
-            self.tabsMenu.add_command(label="Close Tab",command=self.closeTab)
+            # Tabs menu was here. It's now in init()
 
             self.helpMenu = tkinter.Menu(self.app)
             self.helpMenu.add_command(label = "Flamingearth Help",command=lambda:self.goToPage("flamingearth://help"))
@@ -155,6 +160,17 @@ class main():
             print("[Main] Tab title successfully edited")
         except Exception as e:
             print(f"[Main] Error editing tab title: {e}")
+
+    def changeTab(self,event):
+        itemID = self.tabs.index(self.tabs.select())
+        self.selectedTab.set(self.tabs.tab(itemID,"text"))
+
+    def selectNewTab(self, *args):
+        selected_title = self.selectedTab.get()
+        for tab_id in self.tabs.tabs():
+            if self.tabs.tab(tab_id, "text") == selected_title:
+                self.tabs.select(tab_id)
+                break
 
     # Menu button command bindings
     def openFile(self):
@@ -207,7 +223,6 @@ class main():
     # Exit checks
     def checkToQuit(self,event,index):
         print("[Main] Tab closed event received")
-
         self.tabProcesses[index].browserView.quitHover()
         if len(self.tabs.tabs())-1 == 0:
             self.app.quit()

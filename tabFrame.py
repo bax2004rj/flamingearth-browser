@@ -49,7 +49,7 @@ class newFrame:
 
         self.backMenu = tkinter.Menu(self.addressObject)
         self.backbutton.bind("<Button-3>",self.showBackMenu)
-        self.backbutton.bind("<Button-3>",self.showBackMenu)
+        self.forwardbutton.bind("<Button-3>",self.showBackMenu)
 
         self.addressBar = ttk.Combobox(self.addressObject,textvariable = self.currentAddress,values = self.historyItems)
         self.addressBar.bind("<<ComboboxSelected>>",self.convertAndGo)

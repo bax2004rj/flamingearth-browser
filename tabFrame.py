@@ -175,6 +175,19 @@ class newFrame:
                 self.tabTitle = "History"
                 self.historyFrame.load_history()
                 self.historyFrame.isEnabled = True
+                try:
+                    if subpage[3] == "clear" or subpage[3] == "delete":
+                        self.historyFrame.clear_history()
+                    if subpage[3].startswith("search?q="):
+                        searchTemp = subpage[3].split("\"")[1:]
+                        search=""
+                        for i in searchTemp:
+                            search += i
+                        self.historyFrame.searchText.set(search)
+                        self.historyFrame.search_bar.configure(textvariable = self.historyFrame.searchText)
+                        self.historyFrame.search()
+                except IndexError:
+                    print("[TabFrame] No subpages requested")
             else:
                 self.tabTitle = "Error"
                 self.newtab.newTabFrame.pack_forget()
@@ -197,7 +210,7 @@ class newFrame:
                 except Exception as e:
                     print(f"[TabFrame] Failed to open, gave exception {e}")
             self.goToPage(page=self.sessionUrls[-2])
-        elif len(urlSplit)==3 and ":" not in page: #Add https:// in front of url without protocol
+        elif len(urlSplit)==3 or len(urlSplit)==4 and ":" not in page: #Add https:// in front of url without protocol
             self.goToPage(page="https://"+page)
         elif len(urlSplit)==2 and ":" not in page: #Add https://www. in front of url without protocol
             self.goToPage(page="https://www."+page)

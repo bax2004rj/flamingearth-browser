@@ -134,7 +134,7 @@ class main():
     def tabAdd(self,page = "http://www.google.com/"): # Create new tab in tabFrame module
         newFrame = ttk.Frame(self.tabs)        
         self.processCount += 1
-        newtab = self.tabs.add(newFrame,text="New Tab",image=self.tabImage,compound="left") # Add new tab to the notebook
+        newtab = self.tabs.add(newFrame,text="New Tab         ",image=self.tabImage,compound="left") # Add new tab to the notebook
         self.tabVars.append(tkinter.StringVar(self.app,"New Tab"))
         self.tabFrames.append(newFrame)
         self.tabObjects.append(newtab) # Formerly textVariable = self.tabVars[-1]
@@ -150,12 +150,19 @@ class main():
             newTitle = self.tabProcesses[frameID].tabTitle
             newIcon = self.tabProcesses[frameID].tabIcon
             print(newIcon)
-            self.tabs.tab(event.widget, text=newTitle, image = newIcon)  # event.data[0] is the new title
+            newTitleTruncated = newTitle
+            print(len(newTitle))
+            if len(newTitle)>fileHandler.tabWidth:
+                newTitleTruncated = newTitle[:fileHandler.tabWidth-1]+"…"
+            elif len(newTitle)<fileHandler.tabWidth:
+                newTitleTruncated = newTitle.ljust(fileHandler.tabWidth-len(newTitle))
+            print(newTitleTruncated)
+            self.tabs.tab(event.widget, text=newTitleTruncated, image = newIcon)  # event.data[0] is the new title
             self.tabs.update()
             if self.tabsMenu.cget("tearoff")==True:  
-                self.tabsMenu.entryconfig(frameID+1,label = newTitle,value=newTitle)
+                self.tabsMenu.entryconfig(frameID+1,label = newTitle,value=newTitleTruncated)
             else:
-                self.tabsMenu.entryconfig(frameID,label = newTitle,value=newTitle)
+                self.tabsMenu.entryconfig(frameID,label = newTitle,value=newTitleTruncated)
             self.selectedTab.set(newTitle)
             print("[Main] Tab title successfully edited")
         except Exception as e:

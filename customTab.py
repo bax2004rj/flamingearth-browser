@@ -1,6 +1,6 @@
 import tkinter
 from tkinter import ttk
-import tkinterweb
+import fileHandler
 
 class customTab(ttk.Notebook):
     ## A tkinterweb Notebook with close buttons on each tab, made with example from https://stackoverflow.com/questions/39458337/is-there-a-way-to-add-close-buttons-to-tabs-in-tkinter-ttk-notebook

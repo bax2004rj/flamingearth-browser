@@ -198,8 +198,10 @@ class newTab():
                 if getattr(element,"attributes")["title"] is not None and not previousElement == element:
                     altText = getattr(element,"attributes")["title"]
                     cx,cy = self.tab.winfo_pointerxy()
+                    wx = self.browser.winfo_rootx()
+                    wy = self.browser.winfo_rooty()
                     self.altTextLabel.configure(text=altText)
-                    self.altTextLabel.place(anchor="nw",x = cx+8,y = cy-64)
+                    self.altTextLabel.place(anchor="nw",x = cx-wx+16,y = cy-wy+48)
                 else:
                     self.altTextLabel.place_forget()
             except AttributeError:

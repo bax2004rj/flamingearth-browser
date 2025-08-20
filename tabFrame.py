@@ -27,7 +27,7 @@ class newFrame:
         self.saveHistory = saveHistory
         self.tab_id = tabid
         self.tabFrame = tabFrame
-        self.tabTitle = "New Tab"
+        self.tabTitle = "New Tab         "
         self.tabIconURL = None
         self.iconFile = fileHandler.noIcon
         self.tabIcon = ImageTK.PhotoImage(file=self.iconFile)

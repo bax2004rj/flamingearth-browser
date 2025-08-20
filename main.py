@@ -34,7 +34,7 @@ class main():
             try:
                 url = fileHandler.historyURL[len(fileHandler.historyURL)-i-1]
                 self.historyMenuImages.append(ImageTK.PhotoImage(Image.open(fileHandler.historyIcons[len(fileHandler.historyURL)-i-1]).resize([16,16])))
-                self.historyMenu.add_command(label=self.reversedHistoryItems[i],command=lambda:self.goToPage(page=url),image=self.historyMenuImages[i])
+                self.historyMenu.add_command(label=self.reversedHistoryItems[i],command=lambda url=url: self.goToPage(page=url),image=self.historyMenuImages[i],compound="left")
                 ##print(self.reversedHistoryItems[i])
             except IndexError:
                 break

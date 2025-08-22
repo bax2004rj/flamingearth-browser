@@ -123,7 +123,7 @@ class newFrame:
         self.addressBar.set(fileHandler.historyRanked[index])
         self.goToPage()
 
-    def goToPage(self,event=None,page = None, doNotAddToSessionHistory = False, doNotAddToHistory = False): #Handle going to page
+    def goToPage(self,event=None,page = None, doNotAddToSessionHistory = False, doNotAddToHistory = False,reloading = False): #Handle going to page
         if page == None:
             page = self.addressBar.get()
         self.setAddressBar(page) # Set the address bar to the new URL
@@ -148,7 +148,7 @@ class newFrame:
                 self.hamburgerMenu.entryconfig("Find", state="normal") # Enable find menu
             except Exception:
                 pass   
-            self.browserView.changeUrl(page)
+            self.browserView.changeUrl(page,force=reloading)
             self.zoomButton.configure(state="disabled") # Disable zoom menu
         elif protocol == "flamingearth":
             subpage = page.split("/")
@@ -211,9 +211,9 @@ class newFrame:
                     print(f"[TabFrame] Failed to open, gave exception {e}")
             self.goToPage(page=self.sessionUrls[-2])
         elif len(urlSplit)==3 or len(urlSplit)==4 and ":" not in page: #Add https:// in front of url without protocol
-            self.goToPage(page="https://"+page)
+            self.goToPage(page="https://"+page,reloading=reloading)
         elif len(urlSplit)==2 and ":" not in page: #Add https://www. in front of url without protocol
-            self.goToPage(page="https://www."+page)
+            self.goToPage(page="https://www."+page,reloading=reloading)
         else: # If it failed everything else, its probably a search query
             self.goToSearchEngine(page)
         self.refreshButton.configure(text = "↺")
@@ -244,6 +244,7 @@ class newFrame:
         self.goToPage(page=historyURL, doNotAddToSessionHistory=False, doNotAddToHistory=False)
         
     def setAddressBar(self,page):
+        print("Updating page")
         self.currentAddress.set(page)
         self.addressBar.update()
         self.refreshButton.configure(text = "X")
@@ -260,6 +261,7 @@ class newFrame:
             fileHandler.historyIcons.append(self.iconFile)
             fileHandler.historyTimeAccessed.append(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         self.refreshButton.configure(text = "↺")
+        self.browserView.loading = False
         if not fromFlamingearthProtocol:
             self.changeTabTitle(None,True, self.browserView.browser.title) # Change the tab title to the current page title
         self.doNotClearForwardHistory = False # Reset the doNotClearForwardHistory flag
@@ -294,7 +296,7 @@ class newFrame:
         else:
             print("[TabFrame] Tab title did not need to update")
         self.tabFrame.event_generate("<<TabTitleChanged>>") # Trigger the event with the new title
-    
+
     def goHome(self,event=None):
         self.goToPage(page = self.homepage)
         self.ClearForwardHistory()

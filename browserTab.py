@@ -99,7 +99,7 @@ class newTab():
             self.loading = False # Create event to notify browser that loading has stopped
             self.browser.event_generate("<<DoneLoading>>")
         else:
-            self.browser.load_website(self.browser.current_url)
+            self.browser.load_website(self.browser.current_url, force= True)
     
     def zoomIn(self,zoomMenu,zoomButton):
         self.zoom += .25
@@ -122,8 +122,8 @@ class newTab():
         self.browser.configure(zoom=self.zoom)
         zoomButton.pack_forget()
 
-    def changeUrl(self,title):
-        self.browser.load_website(title)
+    def changeUrl(self,title,force = False):
+        self.browser.load_website(title,force=force)
 
     def isLoading(self,event):
         self.loading = True

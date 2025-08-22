@@ -44,14 +44,15 @@ class main():
         
         self.tabsMenu = tkinter.Menu(self.app)
         self.tabsMenu.add_separator()
-        self.tabsMenu.add_command(label="New Tab",command=self.tabAdd)
-        self.tabsMenu.add_command(label="Close Tab",command=self.closeTab)
+        self.tabsMenu.add_command(label="New Tab…",command=self.tabAdd)
+        self.tabsMenu.add_command(label="Close Tab…",command=self.closeTab)
 
         self.addMenu()
 
         self.tabs = customTab.customTab(self.app) # Create tabs
         self.tabs.pack(fill="both",expand=1)
         self.tabs.bind_newtab(self.tabAdd)
+        self.tabs.bind_menubutton(self.tabsMenu)
         self.tabs.bind_close(self.checkToQuit)
         self.tabs.bind("<<NotebookTabChanged>>",self.changeTab)
 
@@ -140,6 +141,7 @@ class main():
         self.tabObjects.append(newtab) # Formerly textVariable = self.tabVars[-1]
         self.tabProcesses.append(tabFrame.newFrame(self.tabFrames[-1],self.tabVars[-1],self.historyMenu,self.homepage,self.processCount)) #Future TODO: Open in thread
         self.tabsMenu.insert_radiobutton(self.processCount,label= "New Tab", value="New Tab",variable=self.selectedTab)
+        self.tabs.updateNewTabButton()
         print ("New tab generated (process id: %d)"% self.processCount)
 
     def tabEdit(self,event):
@@ -221,6 +223,7 @@ class main():
         currentTab=self.tabs.index(self.tabs.select())
         self.tabs.beforeCloseFunction(None,currentTab)
         self.tabs.forget(currentTab)
+        self.tabs.updateNewTabButton()
         self.tabs.event_generate("<<NotebookTabClosed>>")
 
     def find(self):

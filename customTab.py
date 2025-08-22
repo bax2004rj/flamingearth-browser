@@ -17,10 +17,14 @@ class customTab(ttk.Notebook):
 
         self.bind("<ButtonPress-1>", self.on_close_press, True)
         self.bind("<ButtonRelease-1>",self.on_close_release)
+        self.bind("<Configure>",self.updateNewTabButton)
         self.beforeCloseFunction = self.nothing(None)
         # New tab button
         self.newtab = ttk.Button(self, text="+")
-        self.newtab.place(relx=1.0, rely=0.0, anchor='ne', x=-5, y=5)
+        self.newtab.place(anchor='nw', x=len(self.tabs())*300, y=5)
+        # Tab Menu button
+        self.tabMenu =ttk.Menubutton(self)
+        self.tabMenu.place(relx=1.0,rely=0.0,anchor='ne',x=-5,y=5)
 
     def nothing(self,event=None,index=None): #Do nothing as default item.
         pass
@@ -29,9 +33,20 @@ class customTab(ttk.Notebook):
     def bind_newtab(self,command):
         self.newtab.configure(command=command)
 
+    def bind_menubutton(self,menu):
+        self.tabMenu.config(menu=menu)
+
     def bind_close(self,command):
         self.beforeCloseFunction = command
 
+    def updateNewTabButton(self,event = None):
+        currentWidth= len(self.tabs())*170+20 #TODO: Make this NOT based on magic numbers, hopes and dreams.
+        if currentWidth < self.winfo_width()-42:
+            self.newtab.place_configure(relx = 0.0, anchor="nw",x=currentWidth)
+        else:
+            self.newtab.place_configure(relx = 1.0, anchor="ne",x=-42)
+        self.update()
+    
     def on_close_press(self, event):
         """Called when the button is pressed over the close button"""
 
@@ -62,6 +77,7 @@ class customTab(ttk.Notebook):
 
         self.state(["!pressed"])
         self._active = None
+        self.updateNewTabButton()
 
     """ 
     ## Used to fix an error when using Tkinterweb's Notebook class 

@@ -1,5 +1,6 @@
 import tkinter
 from tkinter import ttk, messagebox, filedialog
+import tkinter.font
 import sv_ttk
 import darkdetect
 # Other imports
@@ -27,6 +28,8 @@ class main():
         self.app.winfo_toplevel().title("Flamingearth Browser v1.0a")
         self.app.geometry("1366x720")
        
+        self.font = tkinter.font.nametofont("TkDefaultFont")# Convert to tkinter font for size measurements
+
         self.reversedHistoryItems = list(reversed(fileHandler.historyTitles))
         self.historyMenuImages = []
         self.historyMenu = tkinter.Menu(self.app)
@@ -59,6 +62,7 @@ class main():
         self.tabImage = ImageTK.PhotoImage(file=fileHandler.noIcon) # Default tab icon
         self.tabObjects = []
         self.tabFrames = []
+        self.tabWidths = []
         self.tabVars = []
         self.tabProcesses = []
         self.selectedTab = tkinter.StringVar(self.app,"New Tab")
@@ -137,11 +141,17 @@ class main():
         self.processCount += 1
         newtab = self.tabs.add(newFrame,text="New Tab         ",image=self.tabImage,compound="left") # Add new tab to the notebook
         self.tabVars.append(tkinter.StringVar(self.app,"New Tab"))
+        tabPixelWidth = 64+self.font.measure("New Tab         ")
+        self.tabWidths.append(tabPixelWidth)
         self.tabFrames.append(newFrame)
         self.tabObjects.append(newtab) # Formerly textVariable = self.tabVars[-1]
         self.tabProcesses.append(tabFrame.newFrame(self.tabFrames[-1],self.tabVars[-1],self.historyMenu,self.homepage,self.processCount)) #Future TODO: Open in thread
         self.tabsMenu.insert_radiobutton(self.processCount,label= "New Tab", value="New Tab",variable=self.selectedTab)
-        self.tabs.updateNewTabButton()
+        
+        totalWidth = 0
+        for i in self.tabWidths:
+            totalWidth += i
+        self.tabs.updateNewTabButton(externallyTrackedWidth=totalWidth)
         print ("New tab generated (process id: %d)"% self.processCount)
 
     def tabEdit(self,event):
@@ -159,6 +169,7 @@ class main():
             elif len(newTitle)<fileHandler.tabWidth:
                 newTitleTruncated = newTitle.ljust(fileHandler.tabWidth-len(newTitle))
             print(newTitleTruncated)
+            self.tabWidths[frameID] = 64+self.font.measure(newTitleTruncated)
             self.tabs.tab(event.widget, text=newTitleTruncated, image = newIcon)  # event.data[0] is the new title
             self.tabs.update()
             if self.tabsMenu.cget("tearoff")==True:  
@@ -166,6 +177,11 @@ class main():
             else:
                 self.tabsMenu.entryconfig(frameID,label = newTitle,value=newTitleTruncated)
             self.selectedTab.set(newTitle)
+
+            totalWidth = 0
+            for i in self.tabWidths:
+                totalWidth += i
+            self.tabs.updateNewTabButton(externallyTrackedWidth=totalWidth)
             print("[Main] Tab title successfully edited")
         except Exception as e:
             print(f"[Main] Error editing tab title: {e}")

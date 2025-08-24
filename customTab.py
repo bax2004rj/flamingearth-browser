@@ -39,10 +39,12 @@ class customTab(ttk.Notebook):
     def bind_close(self,command):
         self.beforeCloseFunction = command
 
-    def updateNewTabButton(self,event = None):
-        currentWidth= len(self.tabs())*170+20 #TODO: Make this NOT based on magic numbers, hopes and dreams.
-        if currentWidth < self.winfo_width()-42:
+    def updateNewTabButton(self,event = None, externallyTrackedWidth = None):
+        currentWidth= len(self.tabs())*170 #TODO: Make this NOT based on magic numbers, hopes and dreams.
+        if currentWidth < self.winfo_width()-42 and externallyTrackedWidth is None:
             self.newtab.place_configure(relx = 0.0, anchor="nw",x=currentWidth)
+        elif externallyTrackedWidth is not None and externallyTrackedWidth < self.winfo_width()-42:
+            self.newtab.place_configure(relx = 0.0, anchor="nw",x=externallyTrackedWidth)
         else:
             self.newtab.place_configure(relx = 1.0, anchor="ne",x=-42)
         self.update()

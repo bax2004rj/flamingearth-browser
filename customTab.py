@@ -1,5 +1,6 @@
 import tkinter
 from tkinter import ttk
+import tkinter.font
 import fileHandler
 
 class customTab(ttk.Notebook):
@@ -20,6 +21,7 @@ class customTab(ttk.Notebook):
         self.bind("<Configure>",self.updateNewTabButton)
         self.beforeCloseFunction = self.nothing(None)
         # New tab button
+        self.font = tkinter.font.nametofont("TkDefaultFont")# Convert to tkinter font for size measurements
         self.newtab = ttk.Button(self, text="+")
         self.newtab.place(anchor='nw', x=len(self.tabs())*300, y=5)
         # Tab Menu button
@@ -39,12 +41,12 @@ class customTab(ttk.Notebook):
     def bind_close(self,command):
         self.beforeCloseFunction = command
 
-    def updateNewTabButton(self,event = None, externallyTrackedWidth = None):
-        currentWidth= len(self.tabs())*170 #TODO: Make this NOT based on magic numbers, hopes and dreams.
-        if currentWidth < self.winfo_width()-42 and externallyTrackedWidth is None:
+    def updateNewTabButton(self,event = None):
+        currentWidth = 0
+        for i in self.tabs():
+                currentWidth += 77+self.font.measure(self.tab(i,"text"))
+        if currentWidth < self.winfo_width()-42:
             self.newtab.place_configure(relx = 0.0, anchor="nw",x=currentWidth)
-        elif externallyTrackedWidth is not None and externallyTrackedWidth < self.winfo_width()-42:
-            self.newtab.place_configure(relx = 0.0, anchor="nw",x=externallyTrackedWidth)
         else:
             self.newtab.place_configure(relx = 1.0, anchor="ne",x=-42)
         self.update()

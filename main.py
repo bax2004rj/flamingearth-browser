@@ -62,7 +62,6 @@ class main():
         self.tabVars = []
         self.tabProcesses = []
         self.selectedTab = tkinter.StringVar(self.app,"New Tab")
-        self.selectedTab.trace_add('write',self.selectNewTab)
         self.processCount = 0 
         self.homepage = "flamingearth://newtab"
         self.app.bind("<<TabTitleChanged>>",self.tabEdit)
@@ -143,6 +142,7 @@ class main():
         
         totalWidth = 0
         self.tabs.updateNewTabButton()
+        self.tabs.select(len(self.tabs.tabs())-1)
         print ("New tab generated (process id: %d)"% self.processCount)
 
     def tabEdit(self,event):
@@ -175,13 +175,6 @@ class main():
     def changeTab(self,event):
         itemID = self.tabs.index(self.tabs.select())
         self.selectedTab.set(self.tabs.tab(itemID,"text"))
-
-    def selectNewTab(self, *args):
-        selected_title = self.selectedTab.get()
-        for tab_id in self.tabs.tabs():
-            if self.tabs.tab(tab_id, "text") == selected_title:
-                self.tabs.select(tab_id)
-                break
 
     # Menu button command bindings
     def openFile(self):

@@ -1,5 +1,6 @@
 # flamingearth-browser
 [![License](https://img.shields.io/:license-gplv2-green.svg)](https://tldrlegal.com/license/gnu-general-public-license-v2)
+
 A web browser written in Python using Tkinter, and the [TkinterWeb](https://github.com/Andereoo/TkinterWeb) module. Themes are currently provided by the [Sun Valley TTK/TCL theme](https://github.com/rdbende/Sun-Valley-ttk-theme). It is vey basic, and due to its use of TkinterWeb, it does not completely support JS elements, so it is not currently reccomended as a daily-use browser
 ![Screenshot_20220619_225428](https://user-images.githubusercontent.com/40148394/174517065-54689d3c-a0f1-4fbd-b004-14752caad360.png "yes this image is very old, probably going to fix this when the package is released")
 
@@ -37,7 +38,8 @@ This software is currently a collection of python scripts, so running from code 
     - If your system gives issues regarding ``externally-managed-environments``, the developers of your OS probably want you to install everything off their package manager. Check your operating systems package manager to find these pacakges. For the packages you cannot find on your package manager, run PIP again, removing the names of packages you already have, and add ``--break-system-packages`` to the end of it.
 > [!NOTE]
 > Generally, package mangers that do this title python packages as ``python3-<packageName>``
-    - On some installs on Windows, pythonmonkey failed to install as it was looking for npm. Try installing that if that error occurs.
+
+- On some installs on Windows, pythonmonkey failed to install as it was looking for npm. Try installing that if that error occurs.
 ## Usage
 - Move to the directory where the code cloned to. 
 - Run ``main.py``.

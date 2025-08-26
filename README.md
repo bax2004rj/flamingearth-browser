@@ -35,8 +35,8 @@ This software is currently a collection of python scripts, so running from code 
     - Run ``pip install sv_ttk tkinterweb darkdetect humanize tkcalendar pillow pythonmonkey`` in a terminal.
     - On Windows, run ``pip install sv_ttk tkinterweb darkdetect humanize tkcalendar pillow pythonmonkey pywinstyles``
     - If your system gives issues regarding ``externally-managed-environments``, the developers of your OS probably want you to install everything off their package manager. Check your operating systems package manager to find these pacakges. For the packages you cannot find on your package manager, run PIP again, removing the names of packages you already have, and add ``--break-system-packages`` to the end of it.
-    > [!NOTE]
-    > Generally, package mangers that do this title python packages as ``python3-<packageName>``
+> [!NOTE]
+> Generally, package mangers that do this title python packages as ``python3-<packageName>``
     - On some installs on Windows, pythonmonkey failed to install as it was looking for npm. Try installing that if that error occurs.
 ## Usage
 - Move to the directory where the code cloned to. 

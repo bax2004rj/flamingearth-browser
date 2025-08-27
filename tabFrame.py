@@ -6,6 +6,7 @@ import browserTab
 import settings
 import fileHandler
 import history
+import bookmarks
 from PIL import Image, ImageTk as ImageTK
 import urllib.request
 import subprocess
@@ -71,6 +72,7 @@ class newFrame:
         self.browserView = browserTab.newTab(tabFrame,self.zoomMenu,self.back,self.forward)
         self.settingsFrame = settings.Settings(tabFrame)
         self.historyFrame = history.History(tabFrame)
+        self.bookmarksFrame = bookmarks.Bookmarks(tabFrame)
 
         self.menuButton = ttk.Menubutton(self.addressBar,text = "≡",menu = self.hamburgerMenu)
         self.menuButton.pack(side = "right")
@@ -160,17 +162,20 @@ class newFrame:
                 self.newtab.newTabFrame.pack(fill="both", side="top", expand=True)
                 self.settingsFrame.settings_frame.pack_forget()
                 self.historyFrame.history_frame.pack_forget()
+                self.bookmarksFrame.bookmarks_frame.pack_forget()
                 self.tabTitle = "New Tab"
                 self.loadingDone(fromFlamingearthProtocol=True)
             elif subpage[2] == "settings":
                 self.newtab.newTabFrame.pack_forget()
                 self.settingsFrame.settings_frame.pack(fill="both", side="top", expand=True)
                 self.historyFrame.history_frame.pack_forget()
+                self.bookmarksFrame.bookmarks_frame.pack_forget()
                 self.tabTitle = "Settings"
                 self.loadingDone(fromFlamingearthProtocol=True)
             elif subpage[2] == "history":
                 self.newtab.newTabFrame.pack_forget()
                 self.settingsFrame.settings_frame.pack_forget()
+                self.bookmarksFrame.bookmarks_frame.pack_forget()
                 self.historyFrame.history_frame.pack(fill="both", side="top", expand=True)
                 self.tabTitle = "History"
                 self.historyFrame.load_history()
@@ -188,11 +193,32 @@ class newFrame:
                         self.historyFrame.search()
                 except IndexError:
                     print("[TabFrame] No subpages requested")
+            elif subpage[2] == "bookmarks":
+                self.newtab.newTabFrame.pack_forget()
+                self.settingsFrame.settings_frame.pack_forget()
+                self.historyFrame.history_frame.pack_forget()
+                self.bookmarksFrame.bookmarks_frame.pack(fill="both", side="top", expand=True)
+                self.tabTitle = "Bookmarks"
+                try:
+                    if subpage[3].startswith("search?q="):
+                        searchTemp = subpage[3].split("\"")[1:]
+                        search=""
+                        for i in searchTemp:
+                            search += i
+                        self.historyFrame.searchText.set(search)
+                        self.historyFrame.search_bar.configure(textvariable = self.historyFrame.searchText)
+                        self.historyFrame.search()
+                    # TODO: Add subfolder handling
+                except IndexError:
+                    print("[TabFrame] No subpages requested")
+                    self.bookmarksFrame.load_bookmarks()
+                    self.bookmarksFrame.isEnabled = True
             else:
                 self.tabTitle = "Error"
                 self.newtab.newTabFrame.pack_forget()
                 self.settingsFrame.settings_frame.pack_forget()
                 self.historyFrame.history_frame.pack_forget()
+                self.bookmarksFrame.bookmarks_frame.pack_forget()
                 self.browserView.showBrowserView()
                 self.browserView.browser.show_error_page(page,f"{subpage} is not recognized as a valid flamingearth:// URL. Check spelling and try again","404")
         elif protocol is not None and ":" in page:

@@ -40,7 +40,7 @@ autodark = True # Automatically detect dark mode
 darkmode = False # Dark mode autodetect by default
 tkinterTheme = "sv_ttk" # Theme for tkinter, sv_ttk is the default
 menuBar = False # Show menu bar. On MacOS, this setting cannot be turned off
-tabWidth = 16
+tabWidth = 16 # Width, in charachters that each tab takes up. Currently not a saved setting.
 
 displayBookmarks = True # Display bookmarks in the address bar
 notifyForTabsOnQuit = 0 # Notify user if tabs are open on quit. -1 = no notification, 0 = always ask, 1 <= ask if there are more tabs open than threshold  

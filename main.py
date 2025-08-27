@@ -24,7 +24,7 @@ class main():
     
         self.app = tkinter.Tk()
         self.setDarkmode() # Set dark mode
-        self.app.winfo_toplevel().title("Flamingearth Browser v1.0a")
+        self.app.winfo_toplevel().title("New Tab | Flamingearth Browser v1.0a")
         self.app.geometry("1366x720")
        
         self.reversedHistoryItems = list(reversed(fileHandler.historyTitles))
@@ -169,6 +169,8 @@ class main():
             self.selectedTab.set(newTitle)
             self.tabs.updateNewTabButton()
             print("[Main] Tab title successfully edited")
+            self.app.winfo_toplevel().title(f"{newTitle} | Flamingearth Browser v1.0a")
+
         except Exception as e:
             print(f"[Main] Error editing tab title: {e}")
 
@@ -216,7 +218,8 @@ class main():
     
     def closeTab(self):
         currentTab=self.tabs.index(self.tabs.select())
-        self.tabs.beforeCloseFunction(None,currentTab)
+        if self.tabs.beforeCloseFunction is not None:
+            self.tabs.beforeCloseFunction(None,currentTab)
         self.tabs.forget(currentTab)
         self.tabs.updateNewTabButton()
         self.tabs.event_generate("<<NotebookTabClosed>>")

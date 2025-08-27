@@ -2,6 +2,7 @@ import tkinter
 from tkinter import ttk
 import tkinter.font
 import fileHandler
+import os
 
 class customTab(ttk.Notebook):
     ## A tkinterweb Notebook with close buttons on each tab, made with example from https://stackoverflow.com/questions/39458337/is-there-a-way-to-add-close-buttons-to-tabs-in-tkinter-ttk-notebook
@@ -9,6 +10,9 @@ class customTab(ttk.Notebook):
     __initialized = False
     def __init__(self, *args, **kwargs):
         ## Custom notebook with close buttons
+        self.iconWidth = 77
+        if os.name == 'nt':
+            self.iconWidth = 89
         if not self.__initialized:
             self.__initialize_custom_style()
             self.__initialized = True
@@ -44,7 +48,7 @@ class customTab(ttk.Notebook):
     def updateNewTabButton(self,event = None):
         currentWidth = 0
         for i in self.tabs():
-                currentWidth += 77+self.font.measure(self.tab(i,"text"))
+                currentWidth += self.iconWidth+self.font.measure(self.tab(i,"text"))
         if currentWidth < self.winfo_width()-42:
             self.newtab.place_configure(relx = 0.0, anchor="nw",x=currentWidth)
         else:
@@ -75,7 +79,8 @@ class customTab(ttk.Notebook):
         index = self.index("@%d,%d" % (event.x, event.y))
 
         if self._active == index:
-            self.beforeCloseFunction(event,index)
+            if self.beforeCloseFunction is not None:
+                self.beforeCloseFunction(event,index)
             self.forget(index)
             self.event_generate("<<NotebookTabClosed>>")
 

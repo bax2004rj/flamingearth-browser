@@ -59,8 +59,6 @@ historyIcons = [] # History icons list (locations to icon files)
 historyTimeAccessed = [] # History date accessed list
 historyRanked = [] #History list, sorted by most visted url
 bookmarks = [] # Bookmarks url list
-bookmarksTitles = [] # Bookmarks titles list
-bookmarksIcons = [] # Bookmarks icons list (locations to icon files)
 downloads = [] # Downloads list
 downloadTime = [] # Downloads date list
 downloadSource = [] # Downloads source list
@@ -135,7 +133,7 @@ def loadHistory():
             json.dump(historyFileOut, file, indent=4)
 
 def loadBookmarks():
-    global bookmarksFile,bookmarks,bookmarksTitles,bookmarksIcons
+    global bookmarksFile,bookmarks
     if os.path.exists(bookmarksFile):
         with open(bookmarksFile, 'r') as file:
             bookmarksJson = json.load(file)
@@ -145,8 +143,6 @@ def loadBookmarks():
     else:
         bookmarksFileOut = {
             'bookmarks': bookmarks,
-            'bookmarksTitles': bookmarksTitles,
-            'bookmarksIcons': bookmarksIcons,
         }
         with open(bookmarksFile, 'w') as file:
             json.dump(bookmarksFileOut, file, indent=4)
@@ -203,8 +199,6 @@ def saveBookmarks():
     global bookmarksFile,bookmarks,bookmarksTitles,bookmarksIcons
     bookmarksFileOut = {
         'bookmarks': bookmarks,
-        'bookmarksTitles': bookmarksTitles,
-        'bookmarksIcons': bookmarksIcons,
     }
     with open(bookmarksFile, 'w') as file:
         json.dump(bookmarksFileOut, file, indent=4)

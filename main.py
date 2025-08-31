@@ -26,7 +26,8 @@ class main():
         self.setDarkmode() # Set dark mode
         self.app.winfo_toplevel().title("New Tab | Flamingearth Browser v1.0a")
         self.app.geometry("1366x720")
-       
+        self.displayScaling = self.app.tk.call("tk","scaling")
+
         self.reversedHistoryItems = list(reversed(fileHandler.historyTitles))
         self.historyMenuImages = []
         self.historyMenu = tkinter.Menu(self.app)
@@ -51,6 +52,7 @@ class main():
 
         self.tabs = customTab.customTab(self.app) # Create tabs
         self.tabs.pack(fill="both",expand=1)
+        self.tabs.setScaling(self.displayScaling)
         self.tabs.bind_newtab(self.tabAdd)
         self.tabs.bind_menubutton(self.tabsMenu)
         self.tabs.bind_close(self.checkToQuit)

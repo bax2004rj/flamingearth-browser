@@ -10,9 +10,8 @@ class customTab(ttk.Notebook):
     __initialized = False
     def __init__(self, *args, **kwargs):
         ## Custom notebook with close buttons
+        self.scalingFactor = 1
         self.iconWidth = 77
-        if os.name == 'nt':
-            self.iconWidth = 89
         if not self.__initialized:
             self.__initialize_custom_style()
             self.__initialized = True
@@ -45,6 +44,13 @@ class customTab(ttk.Notebook):
     def bind_close(self,command):
         self.beforeCloseFunction = command
 
+    def setScaling(self,scalingFactor):
+        self.scalingFactor = scalingFactor
+        self.iconWidth = 73+(4*self.scalingFactor)
+        if os.name == 'nt':
+            self.iconWidth = 85+(4*self.scalingFactor)
+        self.updateNewTabButton()
+    
     def updateNewTabButton(self,event = None):
         currentWidth = 0
         for i in self.tabs():

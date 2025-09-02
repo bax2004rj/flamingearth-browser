@@ -122,7 +122,7 @@ class Bookmarks:
                 self.bookmarks_items[-1].iconLabel.pack(side="top", fill = "x")
                 self.bookmarks_items[-1].bottomFrame = ttk.Frame(self.bookmarks_items[-1])
                 self.bookmarks_items[-1].bottomFrame.pack(side="top",fill="x")
-                self.bookmarks_items[-1].urlLabel = tkinter.Label(self.bookmarks_items[-1].bottomFrame,text=f"{fileHandler.bookmarks[itemNumber]["url"]}", font=("TkDefaultFont",10,"italic"))
+                self.bookmarks_items[-1].urlLabel = tkinter.Label(self.bookmarks_items[-1].bottomFrame,text=f"{fileHandler.bookmarks[itemNumber]['url']}", font=("TkDefaultFont",10,"italic"))
                 self.bookmarks_items[-1].urlLabel.pack(side = "left")
                 self.bookmarks_items[-1].itemNumber = itemNumber
                 self.bookmarks_items[-1].bind("<Button-1>", lambda e, url=fileHandler.bookmarks[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
@@ -155,7 +155,7 @@ class Bookmarks:
                 self.bookmarks_items[-1].iconLabel.pack(side="top", fill = "x")
                 self.bookmarks_items[-1].bottomFrame = ttk.Frame(self.bookmarks_items[-1])
                 self.bookmarks_items[-1].bottomFrame.pack(side="top",fill="x")
-                self.bookmarks_items[-1].urlLabel = tkinter.Label(self.bookmarks_items[-1].bottomFrame,text=f"{fileHandler.bookmarks[itemNumber]["url"]}", font=("TkDefaultFont",10,"italic"))
+                self.bookmarks_items[-1].urlLabel = tkinter.Label(self.bookmarks_items[-1].bottomFrame,text=f"{fileHandler.bookmarks[itemNumber]['url']}", font=("TkDefaultFont",10,"italic"))
                 self.bookmarks_items[-1].urlLabel.pack(side = "left")
                 self.bookmarks_items[-1].itemNumber = itemNumber
                 self.bookmarks_items[-1].bind("<Button-1>", lambda e, url=fileHandler.bookmarks[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))

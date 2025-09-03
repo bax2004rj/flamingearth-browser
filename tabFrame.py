@@ -88,6 +88,9 @@ class newFrame:
         self.refreshButton = ttk.Button(self.addressBar,text = "↺",command= self.browserView.refresh)
         self.refreshButton.pack(side="right")
 
+        self.addBookmarkButton = ttk.Button(self.addressBar,text="☆",command=lambda:self.bookmarksFrame.addBookmark(self.addressBar.get(),self.tabTitle,self.tabIconURL))
+        self.addBookmarkButton.pack(side="right")
+
         ##self.gobutton = ttk.Button(self.addressBar,style="Accent.TButton",text = "Go",command=self.goToPage)
         ##self.gobutton.pack(side="right")
 
@@ -236,10 +239,8 @@ class newFrame:
                 except Exception as e:
                     print(f"[TabFrame] Failed to open, gave exception {e}")
             self.goToPage(page=self.sessionUrls[-2])
-        elif len(urlSplit)==3 or len(urlSplit)==4 and ":" not in page: #Add https:// in front of url without protocol
+        elif len(urlSplit)>=2 or len(urlSplit)<=4 and ":" not in page: #Add https:// in front of url without protocol
             self.goToPage(page="https://"+page,reloading=reloading)
-        elif len(urlSplit)==2 and ":" not in page: #Add https://www. in front of url without protocol
-            self.goToPage(page="https://www."+page,reloading=reloading)
         else: # If it failed everything else, its probably a search query
             self.goToSearchEngine(page)
         self.refreshButton.configure(text = "↺")

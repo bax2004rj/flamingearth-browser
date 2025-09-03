@@ -12,7 +12,7 @@ class Bookmarks:
         self.topbar = ttk.Frame(self.bookmarks_frame, style = "Card.TFrame")
         self.topbar.pack(side="top", fill="x")
 
-        self.sidebar = tkinter.Frame(self.bookmarks_frame)
+        self.sidebar = ttk.Treeview(self.bookmarks_frame)
         self.sidebar.pack(side="left", fill="y")
 
         self.progress = ttk.Progressbar(self.topbar)
@@ -20,9 +20,9 @@ class Bookmarks:
         self.top_label = ttk.Label(self.topbar, text="Bookmarks",font=("TkDefaultFont", 16))
         self.top_label.pack(side="left", padx=10)
 
-        self.folderButton = ttk.Button(self.topbar,text="New Folder")
+        self.folderButton = ttk.Button(self.topbar,text="New Folder",command=self.addFolder)
         self.folderButton.pack(side = "left")
-        self.bookmarkButton = ttk.Button(self.topbar,text="New Bookmark")
+        self.bookmarkButton = ttk.Button(self.topbar,text="New Bookmark",command=self.addBookmark)
         self.bookmarkButton.pack(side = "left")
 
         self.searchFrame = ttk.Frame(self.topbar)
@@ -89,12 +89,20 @@ class Bookmarks:
         if len(fileHandler.bookmarks) == 0 and not self.searching:
             print("[Bookmarks] No bookmarks")
             self.no_bookmarks_image = tkinter.PhotoImage(file=fileHandler.noShortcut)
+            try:
+                self.nobookmarkstext.pack_forget()
+            except Exception:
+                print("[Bookmarks] No bookmarks, did not remove previous text (it most likely didn't exist before this)")
             self.nobookmarkstext = tkinter.Label(self.bookmarks_list, text="No bookmarks found", font=("TkDefaultFont", 16), image=self.no_bookmarks_image, compound="top")
             self.nobookmarkstext.pack()
         elif len(self.foundIndicies) == 0 and self.searching:
             self.destroyAllItems()
             print("[Bookmarks] No bookmarks")
             self.no_bookmarks_image = tkinter.PhotoImage(file=fileHandler.noShortcut)
+            try:
+                self.nobookmarkstext.pack_forget()
+            except Exception:
+                print("[Bookmarks] No bookmarks, did not remove previous text (it most likely didn't exist before this)")
             self.nobookmarkstext = tkinter.Label(self.bookmarks_list, text="No results found", font=("TkDefaultFont", 16), image=self.no_bookmarks_image, compound="top")
             self.nobookmarkstext.pack()
         elif self.searching: #Will only load search results
@@ -117,17 +125,23 @@ class Bookmarks:
 
                 # Generate item frame
                 self.bookmarks_items.append(ttk.Frame(self.bookmarks_list,cursor="hand2"))
-                self.bookmarks_items[-1].iconImage = tkinter.PhotoImage(file=fileHandler.bookmarks[itemNumber]["icon"] if os.path.exists(fileHandler.bookmarksIcons[itemNumber]) else fileHandler.noIcon)
-                self.bookmarks_items[-1].iconLabel = ttk.Label(self.bookmarks_items[-1], text=fileHandler.bookmarks[itemNumber]["title"],image=self.bookmarks_items[-1].iconImage, style="TButton", compound="left")
-                self.bookmarks_items[-1].iconLabel.pack(side="top", fill = "x")
-                self.bookmarks_items[-1].bottomFrame = ttk.Frame(self.bookmarks_items[-1])
-                self.bookmarks_items[-1].bottomFrame.pack(side="top",fill="x")
-                self.bookmarks_items[-1].urlLabel = tkinter.Label(self.bookmarks_items[-1].bottomFrame,text=f"{fileHandler.bookmarks[itemNumber]['url']}", font=("TkDefaultFont",10,"italic"))
-                self.bookmarks_items[-1].urlLabel.pack(side = "left")
-                self.bookmarks_items[-1].itemNumber = itemNumber
-                self.bookmarks_items[-1].bind("<Button-1>", lambda e, url=fileHandler.bookmarks[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
-                self.bookmarks_items[-1].iconLabel.bind("<Button-1>",lambda e, url=fileHandler.bookmarks[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
-                self.bookmarks_items[-1].bottomFrame.bind("<Button-1>", lambda e, url=fileHandler.bookmarks[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
+                if fileHandler.bookmarks[itemNumber]["type"]=="folder":
+                    self.bookmarks_items[-1].iconLabel = ttk.Label(self.bookmarks_items[-1], text=fileHandler.bookmarks[itemNumber]["title"],image=self.bookmarks_items[-1].iconImage, style="TButton", compound="left")
+                    self.bookmarks_items[-1].iconLabel.pack(side="top", fill = "x")
+                    self.bookmarks_items[-1].bottomFrame = ttk.Frame(self.bookmarks_items[-1])
+                    self.bookmarks_items[-1].bottomFrame.pack(side="top",fill="x")
+                elif fileHandler.bookmarks[itemNumber]["type"]=="bookmark":
+                    self.bookmarks_items[-1].iconImage = tkinter.PhotoImage(file=fileHandler.bookmarks[itemNumber]["icon"] if os.path.exists(fileHandler.bookmarksIcons[itemNumber]) else fileHandler.noIcon)
+                    self.bookmarks_items[-1].iconLabel = ttk.Label(self.bookmarks_items[-1], text=fileHandler.bookmarks[itemNumber]["title"],image=self.bookmarks_items[-1].iconImage, style="TButton", compound="left")
+                    self.bookmarks_items[-1].iconLabel.pack(side="top", fill = "x")
+                    self.bookmarks_items[-1].bottomFrame = ttk.Frame(self.bookmarks_items[-1])
+                    self.bookmarks_items[-1].bottomFrame.pack(side="top",fill="x")
+                    self.bookmarks_items[-1].urlLabel = tkinter.Label(self.bookmarks_items[-1].bottomFrame,text=f"{fileHandler.bookmarks[itemNumber]['url']}", font=("TkDefaultFont",10,"italic"))
+                    self.bookmarks_items[-1].urlLabel.pack(side = "left")
+                    self.bookmarks_items[-1].itemNumber = itemNumber
+                    self.bookmarks_items[-1].bind("<Button-1>", lambda e, url=fileHandler.bookmarks[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
+                    self.bookmarks_items[-1].iconLabel.bind("<Button-1>",lambda e, url=fileHandler.bookmarks[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
+                    self.bookmarks_items[-1].bottomFrame.bind("<Button-1>", lambda e, url=fileHandler.bookmarks[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
             
                 self.bookmarks_items[-1].pack(side = "top", anchor="w", fill="x")
             self.progress.pack_forget()
@@ -273,3 +287,67 @@ class Bookmarks:
             self.load_bookmarks(supressEventGeneration=True)
         else:
             print("Search still rendering")
+    
+    def addBookmark(self,url=None,title=None,icon=None,edit=False,editIndex=None):
+        self.addWindow = tkinter.Toplevel()
+        self.addWindow.title("Add Bookmark")
+        self.addWindow.geometry("300x200")
+        self.titleText = tkinter.Label(self.addWindow,text="Title")
+        self.titleText.pack(side="top")
+        self.titleEntry = ttk.Entry(self.addWindow)
+        self.titleEntry.pack(side="top")
+        if title is not None:
+            self.titleEntry.delete(0,tkinter.END)
+            self.titleEntry.insert(0,string=title)
+        if url is None:
+            self.urlText = tkinter.Label(self.addWindow,text="URL")
+            self.urlText.pack(side="top")
+            self.urlEntry = ttk.Entry(self.addWindow)
+            self.urlEntry.pack(side="top")
+        self.folderText = tkinter.Label(self.addWindow,text="Folder")
+        self.folderText.pack(side="top")
+        self.folderSelector = ttk.Combobox(self.addWindow)
+        self.folderSelector.pack(side="top")
+
+        self.buttonFrame = ttk.Frame(self.addWindow,style="Card.TFrame")
+        self.buttonFrame.pack(side="bottom", fill="x")
+
+        self.saveButton = ttk.Button(self.buttonFrame, text="Save", style="Accent.TButton")
+        self.saveButton.pack(side="right")
+        if edit==True:
+            self.deleteButton = ttk.Button(self.buttonFrame,text="Delete")
+            self.deleteButton.pack(side="right")
+        self.cancelButton = ttk.Button(self.buttonFrame, text="Cancel", command=self.addWindow.destroy)
+        self.cancelButton.pack(side="right")
+    
+    def addFolder(self,title=None,edit=False,editIndex=None):
+        self.addFolderWindow = tkinter.Toplevel()
+        self.addFolderWindow.title("Add Folder")
+        self.addFolderWindow.geometry("300x200")
+        self.folderTitleText = tkinter.Label(self.addFolderWindow,text="Title")
+        self.folderTitleText.pack(side="top")
+        self.folderTitleEntry = ttk.Entry(self.addFolderWindow)
+        self.folderTitleEntry.pack(side="top")
+        if title is not None:
+            self.folderTitleEntry.delete(0,tkinter.END)
+            self.folderTitleEntry.insert(0,string=title)
+        self.folderText = tkinter.Label(self.addFolderWindow,text="Folder")
+        self.folderText.pack(side="top")
+        self.folderSelector = ttk.Combobox(self.addFolderWindow)
+        self.folderSelector.pack(side="top")
+
+        self.buttonFrame = ttk.Frame(self.addFolderWindow,style="Card.TFrame")
+        self.buttonFrame.pack(side="bottom", fill="x")
+
+        self.saveButton = ttk.Button(self.buttonFrame, text="Save", style="Accent.TButton")
+        self.saveButton.pack(side="right")
+        if edit==True:
+            self.deleteButton = ttk.Button(self.buttonFrame,text="Delete")
+            self.deleteButton.pack(side="right")
+        self.cancelButton = ttk.Button(self.buttonFrame, text="Cancel", command=self.addFolderWindow.destroy)
+        self.cancelButton.pack(side="right")
+
+class BookmarkBar:
+    def __init__(self,tab):
+        self = tkinter.Frame(tab)
+        self.pack(fill = "x")

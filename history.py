@@ -218,12 +218,20 @@ class History:
         if len(fileHandler.historyURL) == 0 and not self.searching:
             print("[History] No history")
             self.no_history_image = tkinter.PhotoImage(file=fileHandler.noShortcut)
+            try:
+                self.nohistorytext.pack_forget()
+            except Exception:
+                print("[History] No history, did not remove previous text (it most likely didn't exist before this)")
             self.nohistorytext = tkinter.Label(self.history_list, text="No history found", font=("TkDefaultFont", 16), image=self.no_history_image, compound="top")
             self.nohistorytext.pack()
         elif len(self.foundIndicies) == 0 and self.searching:
             self.destroyAllItems()
             print("[History] No history")
             self.no_history_image = tkinter.PhotoImage(file=fileHandler.noShortcut)
+            try:
+                self.nohistorytext.pack_forget()
+            except Exception:
+                print("[History] No history, did not remove previous text (it most likely didn't exist before this)")
             self.nohistorytext = tkinter.Label(self.history_list, text="No results found", font=("TkDefaultFont", 16), image=self.no_history_image, compound="top")
             self.nohistorytext.pack()
         elif self.searching: #Will only load search results

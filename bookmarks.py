@@ -46,8 +46,8 @@ class Bookmarks:
         self.bookmarksPadding = tkinter.Frame(self.bookmarks_frame)
        
 
-        self.foldersList = tkinter.Listbox(self.sidebar)
-        self.foldersList.bind("<<ListboxSelect>>", self.jumpToSubfolder)
+        self.foldersList = ttk.Treeview(self.sidebar)
+        self.foldersList.bind("<<TreeviewSelect>>", self.jumpToSubfolder)
 
         self.bookmarks_container = tkinter.Canvas(self.bookmarks_frame)
         self.bookmarks_container.pack(side="right", fill="both", expand=True)
@@ -184,6 +184,15 @@ class Bookmarks:
                 self.bookmarks_list.event_generate("<<DoneLoading>>")
             self.currentlyLoadedItems=self.targetLoadedItems
 
+    def loadTreeview(self,parent="",items=fileHandler.bookmarks,isFirst=True): # Recursively load all items.
+        if isFirst:
+            for i in self.foldersList.get_children():
+                self.foldersList.delete(i)
+        for i["item"] in items:
+                if i["item"]["type"] == "folder":
+                    self.foldersList.insert(parent,tkinter.END,text=i["item"]["title"])
+                    self.loadTreeview(self.foldersList.index(i["item"]["title"]),i["item"]["items"],False)
+
     def destroyAllItems(self):
         for i in self.bookmarks_items:
             i.destroy()
@@ -215,9 +224,10 @@ class Bookmarks:
         self.bookmarks_container.configure(scrollregion=self.bookmarks_container.bbox("all"))
     
     def jumpToSubfolder(self,event = None):
-        selected_date = self.foldersList.get(self.foldersList.curselection())
-        print(f"[Bookmarks] Jumping to date: {selected_date}")
-    
+        selected_folder = self.foldersList.get(self.foldersList.curselection())
+        print(f"[Bookmarks] Jumping to folder: {selected_folder}")
+        self.setUrl(f"flamingearth://bookmarks/{selected_folder}")
+
     def enterSearch(self,event=None):
         if not self.searching:
             self.search_bar.configure(textvariable=self.searchText)

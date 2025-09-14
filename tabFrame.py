@@ -202,15 +202,16 @@ class newFrame:
                 self.historyFrame.history_frame.pack_forget()
                 self.bookmarksFrame.bookmarks_frame.pack(fill="both", side="top", expand=True)
                 self.tabTitle = "Bookmarks"
+                self.bookmarksFrame.loadTreeview()
                 try:
                     if subpage[3].startswith("search?q="):
                         searchTemp = subpage[3].split("\"")[1:]
                         search=""
                         for i in searchTemp:
                             search += i
-                        self.historyFrame.searchText.set(search)
-                        self.historyFrame.search_bar.configure(textvariable = self.historyFrame.searchText)
-                        self.historyFrame.search()
+                        self.bookmarksFrame.searchText.set(search)
+                        self.bookmarksFrame.search_bar.configure(textvariable = self.historyFrame.searchText)
+                        self.bookmarksFrame.search()
                     # TODO: Add subfolder handling
                 except IndexError:
                     print("[TabFrame] No subpages requested")

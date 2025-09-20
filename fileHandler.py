@@ -138,8 +138,6 @@ def loadBookmarks():
         with open(bookmarksFile, 'r') as file:
             bookmarksJson = json.load(file)
             bookmarks = bookmarksJson.get('bookmarks', [])
-            bookmarksTitles = bookmarksJson.get('bookmarksTitles', [])
-            bookmarksIcons = bookmarksJson.get('bookmarksIcons', [])
     else:
         bookmarksFileOut = {
             'bookmarks': bookmarks,

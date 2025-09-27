@@ -194,7 +194,7 @@ def saveHistory():
         json.dump(historyFileOut, file, indent=4)
 
 def saveBookmarks():
-    global bookmarksFile,bookmarks,bookmarksTitles,bookmarksIcons
+    global bookmarksFile,bookmarks
     bookmarksFileOut = {
         'bookmarks': bookmarks,
     }

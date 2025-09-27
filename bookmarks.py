@@ -4,6 +4,7 @@ import fileHandler
 import sv_ttk
 import os
 import datetime
+import json
 
 class Bookmarks:
     def __init__(self,tab):
@@ -136,7 +137,7 @@ class Bookmarks:
                     self.bookmarks_items[-1].bottomFrame = ttk.Frame(self.bookmarks_items[-1])
                     self.bookmarks_items[-1].bottomFrame.pack(side="top",fill="x")
                 elif fileHandler.bookmarks[itemNumber]["type"]=="bookmark":
-                    self.bookmarks_items[-1].iconImage = tkinter.PhotoImage(file=fileHandler.bookmarks[itemNumber]["icon"] if os.path.exists(fileHandler.bookmarksIcons[itemNumber]) else fileHandler.noIcon)
+                    self.bookmarks_items[-1].iconImage = tkinter.PhotoImage(file=fileHandler.bookmarks[itemNumber]["icon"] if os.path.exists(fileHandler.bookmarks[itemNumber]["icon"]) else fileHandler.noIcon)
                     self.bookmarks_items[-1].iconLabel = ttk.Label(self.bookmarks_items[-1], text=fileHandler.bookmarks[itemNumber]["title"],image=self.bookmarks_items[-1].iconImage, style="TButton", compound="left")
                     self.bookmarks_items[-1].iconLabel.pack(side="top", fill = "x")
                     self.bookmarks_items[-1].bottomFrame = ttk.Frame(self.bookmarks_items[-1])
@@ -175,7 +176,7 @@ class Bookmarks:
                         self.bookmarks_items[-1].bottomFrame = ttk.Frame(self.bookmarks_items[-1])
                         self.bookmarks_items[-1].bottomFrame.pack(side="top",fill="x")
                     elif fileHandler.bookmarks[itemNumber]["type"]=="bookmark":
-                        self.bookmarks_items[-1].iconImage = tkinter.PhotoImage(file=fileHandler.bookmarks[itemNumber]["icon"] if os.path.exists(fileHandler.bookmarksIcons[itemNumber]) else fileHandler.noIcon)
+                        self.bookmarks_items[-1].iconImage = tkinter.PhotoImage(file=fileHandler.bookmarks[itemNumber]["icon"] if os.path.exists(fileHandler.bookmarks[itemNumber]["icon"]) else fileHandler.noIcon)
                         self.bookmarks_items[-1].iconLabel = ttk.Label(self.bookmarks_items[-1], text=fileHandler.bookmarks[itemNumber]["title"], style="TButton", compound="left") ##TODO: add image=self.bookmarks_items[-1].iconImage, back
                         self.bookmarks_items[-1].iconLabel.pack(side="top", fill = "x")
                         self.bookmarks_items[-1].iconLabel.pack(side="top", fill = "x")
@@ -202,10 +203,11 @@ class Bookmarks:
         #    for i in self.foldersList.get_children():
         #        self.foldersList.delete(i)
         for i in items:
-                if i['type'] == "folder":
-                    print(f"[Bookmarks] processing {i['title']}")
-                    self.foldersList.insert(parent,tkinter.END,values=[i["title"]])
-                    self.loadTreeview(i['title'],i['items'],False)##
+                print(f"item type {i}")
+                if i["type"] == "folder":
+                    print(f"[Bookmarks] processing {i["title"]}")
+                    self.foldersList.insert(parent,tkinter.END,values=[i['title']])
+                    self.loadTreeview(i["title"],i["items"],False)
         self.foldersList.update()
 
     def destroyAllItems(self):

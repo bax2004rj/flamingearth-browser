@@ -26,7 +26,7 @@ class main():
         self.setDarkmode() # Set dark mode
         self.app.winfo_toplevel().title("New Tab | Flamingearth Browser v1.0a")
         self.app.geometry("1366x720")
-        self.displayScaling = self.app.tk.call("tk","scaling")-0.33
+        self.displayScaling = self.app.tk.call("tk","scaling")-(1/3)
         print(f"[MAIN] Display is scaled to {self.displayScaling*100}%")
 
         self.reversedHistoryItems = list(reversed(fileHandler.historyTitles))

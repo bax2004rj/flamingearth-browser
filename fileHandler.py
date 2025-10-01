@@ -138,8 +138,6 @@ def loadBookmarks():
         with open(bookmarksFile, 'r') as file:
             bookmarksJson = json.load(file)
             bookmarks = bookmarksJson.get('bookmarks', [])
-            bookmarksTitles = bookmarksJson.get('bookmarksTitles', [])
-            bookmarksIcons = bookmarksJson.get('bookmarksIcons', [])
     else:
         bookmarksFileOut = {
             'bookmarks': bookmarks,
@@ -196,7 +194,7 @@ def saveHistory():
         json.dump(historyFileOut, file, indent=4)
 
 def saveBookmarks():
-    global bookmarksFile,bookmarks,bookmarksTitles,bookmarksIcons
+    global bookmarksFile,bookmarks
     bookmarksFileOut = {
         'bookmarks': bookmarks,
     }

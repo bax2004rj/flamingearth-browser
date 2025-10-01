@@ -4,6 +4,7 @@ import fileHandler
 import sv_ttk
 import os
 import datetime
+import json
 
 class Bookmarks:
     def __init__(self,tab):
@@ -46,8 +47,13 @@ class Bookmarks:
         self.bookmarksPadding = tkinter.Frame(self.bookmarks_frame)
        
 
-        self.foldersList = tkinter.Listbox(self.sidebar)
-        self.foldersList.bind("<<ListboxSelect>>", self.jumpToSubfolder)
+        self.foldersList = ttk.Treeview(self.sidebar)
+        self.foldersList.bind("<<TreeviewSelect>>", self.jumpToSubfolder)
+        self.foldersList["columns"]=["folders"]
+        self.foldersList.column("#0",width=16,stretch=tkinter.NO)
+        self.foldersList.column("folders",width=200)
+        self.foldersList.heading("folders",text="Folders")
+        self.foldersList.pack(side="top",fill="both",expand=1)
 
         self.bookmarks_container = tkinter.Canvas(self.bookmarks_frame)
         self.bookmarks_container.pack(side="right", fill="both", expand=True)
@@ -131,7 +137,7 @@ class Bookmarks:
                     self.bookmarks_items[-1].bottomFrame = ttk.Frame(self.bookmarks_items[-1])
                     self.bookmarks_items[-1].bottomFrame.pack(side="top",fill="x")
                 elif fileHandler.bookmarks[itemNumber]["type"]=="bookmark":
-                    self.bookmarks_items[-1].iconImage = tkinter.PhotoImage(file=fileHandler.bookmarks[itemNumber]["icon"] if os.path.exists(fileHandler.bookmarksIcons[itemNumber]) else fileHandler.noIcon)
+                    self.bookmarks_items[-1].iconImage = tkinter.PhotoImage(file=fileHandler.bookmarks[itemNumber]["icon"] if os.path.exists(fileHandler.bookmarks[itemNumber]["icon"]) else fileHandler.noIcon)
                     self.bookmarks_items[-1].iconLabel = ttk.Label(self.bookmarks_items[-1], text=fileHandler.bookmarks[itemNumber]["title"],image=self.bookmarks_items[-1].iconImage, style="TButton", compound="left")
                     self.bookmarks_items[-1].iconLabel.pack(side="top", fill = "x")
                     self.bookmarks_items[-1].bottomFrame = ttk.Frame(self.bookmarks_items[-1])
@@ -155,34 +161,55 @@ class Bookmarks:
             progress_steps = 100 / len(fileHandler.bookmarks)
             ##self.bookmarks_seperators.clear()
             ##self.bookmarks_items.clear()
-            for i in range(self.targetLoadedItems-self.currentlyLoadedItems):
-                item = fileHandler.bookmarks[int(i)+self.currentlyLoadedItems]
-                print(f"[Bookmarks] Processing item {item}")
-                itemNumber = fileHandler.bookmarks.index(item)
-                itemDate = datetime.datetime.strptime(item,"%Y-%m-%d %H:%M:%S")
-                self.progress.step(progress_steps)
+            try:
+                for i in range(self.targetLoadedItems-self.currentlyLoadedItems):
+                    item = fileHandler.bookmarks[int(i)+self.currentlyLoadedItems]
+                    print(f"[Bookmarks] Processing item {item}")
+                    itemNumber = fileHandler.bookmarks.index(item)
+                    self.progress.step(progress_steps)
 
-                # Generate item frame
-                self.bookmarks_items.append(ttk.Frame(self.bookmarks_list,cursor="hand2"))
-                self.bookmarks_items[-1].iconImage = tkinter.PhotoImage(file=fileHandler.bookmarks[itemNumber]["icon"] if os.path.exists(fileHandler.bookmarksIcons[itemNumber]) else fileHandler.noIcon)
-                self.bookmarks_items[-1].iconLabel = ttk.Label(self.bookmarks_items[-1], text=fileHandler.bookmarks[itemNumber]["title"],image=self.bookmarks_items[-1].iconImage, style="TButton", compound="left")
-                self.bookmarks_items[-1].iconLabel.pack(side="top", fill = "x")
-                self.bookmarks_items[-1].bottomFrame = ttk.Frame(self.bookmarks_items[-1])
-                self.bookmarks_items[-1].bottomFrame.pack(side="top",fill="x")
-                self.bookmarks_items[-1].urlLabel = tkinter.Label(self.bookmarks_items[-1].bottomFrame,text=f"{fileHandler.bookmarks[itemNumber]['url']}", font=("TkDefaultFont",10,"italic"))
-                self.bookmarks_items[-1].urlLabel.pack(side = "left")
-                self.bookmarks_items[-1].itemNumber = itemNumber
-                self.bookmarks_items[-1].bind("<Button-1>", lambda e, url=fileHandler.bookmarks[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
-                self.bookmarks_items[-1].iconLabel.bind("<Button-1>",lambda e, url=fileHandler.bookmarks[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
-                self.bookmarks_items[-1].bottomFrame.bind("<Button-1>", lambda e, url=fileHandler.bookmarks[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
-            
-                self.bookmarks_items[-1].pack(side = "top", anchor="w", fill="x")
-                self.previousDate=itemDate.date()
+                    # Generate item frame
+                    self.bookmarks_items.append(ttk.Frame(self.bookmarks_list,cursor="hand2"))
+                    if fileHandler.bookmarks[itemNumber]["type"]=="folder":
+                        self.bookmarks_items[-1].iconLabel = ttk.Label(self.bookmarks_items[-1], text=fileHandler.bookmarks[itemNumber]["title"], style="TButton", compound="left") ##TODO: add image=self.bookmarks_items[-1].iconImage, back
+                        self.bookmarks_items[-1].iconLabel.pack(side="top", fill = "x")
+                        self.bookmarks_items[-1].bottomFrame = ttk.Frame(self.bookmarks_items[-1])
+                        self.bookmarks_items[-1].bottomFrame.pack(side="top",fill="x")
+                    elif fileHandler.bookmarks[itemNumber]["type"]=="bookmark":
+                        self.bookmarks_items[-1].iconImage = tkinter.PhotoImage(file=fileHandler.bookmarks[itemNumber]["icon"] if os.path.exists(fileHandler.bookmarks[itemNumber]["icon"]) else fileHandler.noIcon)
+                        self.bookmarks_items[-1].iconLabel = ttk.Label(self.bookmarks_items[-1], text=fileHandler.bookmarks[itemNumber]["title"], style="TButton", compound="left") ##TODO: add image=self.bookmarks_items[-1].iconImage, back
+                        self.bookmarks_items[-1].iconLabel.pack(side="top", fill = "x")
+                        self.bookmarks_items[-1].iconLabel.pack(side="top", fill = "x")
+                        self.bookmarks_items[-1].bottomFrame = ttk.Frame(self.bookmarks_items[-1])
+                        self.bookmarks_items[-1].bottomFrame.pack(side="top",fill="x")
+                        self.bookmarks_items[-1].urlLabel = tkinter.Label(self.bookmarks_items[-1].bottomFrame,text=f"{fileHandler.bookmarks[itemNumber]['url']}", font=("TkDefaultFont",10,"italic"))
+                        self.bookmarks_items[-1].urlLabel.pack(side = "left")
+                        self.bookmarks_items[-1].itemNumber = itemNumber
+                        self.bookmarks_items[-1].bind("<Button-1>", lambda e, url=fileHandler.bookmarks[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
+                        self.bookmarks_items[-1].iconLabel.bind("<Button-1>",lambda e, url=fileHandler.bookmarks[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
+                        self.bookmarks_items[-1].bottomFrame.bind("<Button-1>", lambda e, url=fileHandler.bookmarks[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
+                
+                    self.bookmarks_items[-1].pack(side = "top", anchor="w", fill="x")
+            except IndexError:
+                print("[Bookmarks] Ran out of bookmarks")
             self.progress.pack_forget()
             self.bookmarks_scrollbar.update()
             if not supressEventGeneration:
                 self.bookmarks_list.event_generate("<<DoneLoading>>")
             self.currentlyLoadedItems=self.targetLoadedItems
+
+    def loadTreeview(self,parent="",items=fileHandler.bookmarks,isFirst=True,parentText=""): # Recursively load all items.
+        #if isFirst:
+        #    for i in self.foldersList.get_children():
+        #        self.foldersList.delete(i)
+        for i in items:
+                print(f"item type {i}")
+                if i["type"] == "folder":
+                    print(f"[Bookmarks] processing {i["title"]}")
+                    newParentText= parentText+"/"+i['title']
+                    self.foldersList.insert(parent,tkinter.END,iid=i,values=[i['title']],text=newParentText)
+                    self.loadTreeview(i,i["items"],False,newParentText)
+        self.foldersList.update()
 
     def destroyAllItems(self):
         for i in self.bookmarks_items:
@@ -215,9 +242,12 @@ class Bookmarks:
         self.bookmarks_container.configure(scrollregion=self.bookmarks_container.bbox("all"))
     
     def jumpToSubfolder(self,event = None):
-        selected_date = self.foldersList.get(self.foldersList.curselection())
-        print(f"[Bookmarks] Jumping to date: {selected_date}")
-    
+        selected_folder_dict = self.foldersList.item(self.foldersList.focus()) #Blanked out until it isnt a problem
+        print(selected_folder_dict)
+        selected_folder = selected_folder_dict["text"]
+        print(f"[Bookmarks] Jumping to folder: {selected_folder}")
+        self.setUrl(f"flamingearth://bookmarks{selected_folder}")
+
     def enterSearch(self,event=None):
         if not self.searching:
             self.search_bar.configure(textvariable=self.searchText)
@@ -275,8 +305,12 @@ class Bookmarks:
         filteredIndices = []
         if not refinedQuery == "":
             for i in filteredIndices:
-                if word in fileHandler.bookmarks[i]["title"] or word in fileHandler.bookmarks[i]["url"]:
-                    self.foundIndicies.append(i)
+                try:
+                    if word in fileHandler.bookmarks[i]["title"] or word in fileHandler.bookmarks[i]["url"]:
+                        self.foundIndicies.append(i)
+                except KeyError:
+                    if word in fileHandler.bookmarks[i]["title"]:
+                        self.foundIndicies.append(i)
         else:
             self.foundIndicies = filteredIndices
         print(f"[History] {len(self.foundIndicies)} items found")

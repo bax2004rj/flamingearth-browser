@@ -46,7 +46,7 @@ class customTab(ttk.Notebook):
 
     def setScaling(self,scalingFactor):
         self.scalingFactor = scalingFactor
-        self.iconWidth = 73+(4*self.scalingFactor)
+        self.iconWidth = 74+(4*self.scalingFactor)
         if os.name == 'nt':
             self.iconWidth = 85+(4*self.scalingFactor)
         self.updateNewTabButton()

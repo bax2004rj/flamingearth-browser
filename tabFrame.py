@@ -73,6 +73,8 @@ class newFrame:
         self.settingsFrame = settings.Settings(tabFrame)
         self.historyFrame = history.History(tabFrame)
         self.bookmarksFrame = bookmarks.Bookmarks(tabFrame)
+        self.bookmarksFrame.loadTreeview(parent="",items=fileHandler.bookmarks,isFirst=True)
+
 
         self.menuButton = ttk.Menubutton(self.addressBar,text = "≡",menu = self.hamburgerMenu)
         self.menuButton.pack(side = "right")
@@ -115,8 +117,11 @@ class newFrame:
         self.browserView.browser.bind("<<DoneLoading>>",self.loadingDone) # Bind page loaded event to loadingDone method
         self.browserView.browser.bind("<<TitleChanged>>",self.changeTabTitle) # Bind URL changed event to pageChanged method
 
-        self.historyFrame.history_list.bind("<<HistoryURLClicked>>", self.historyClicked) # Bind history URL clicked event to goToPage method
+        self.historyFrame.history_list.bind("<<HistoryURLClicked>>", self.customProtocolClicked) # Bind history URL clicked event to goToPage method
         self.historyFrame.history_list.bind("<<DoneLoading>>",lambda e:self.loadingDone(fromFlamingearthProtocol=True)) # Bind history loaded event to loadingDone method
+
+        self.bookmarksFrame.bookmarks_list.bind("<<BookmarksURLClicked>>", lambda page = "bookmarks": self.customProtocolClicked(page=page)) # Bind history URL clicked event to goToPage method
+        self.bookmarksFrame.bookmarks_list.bind("<<DoneLoading>>",lambda e:self.loadingDone(fromFlamingearthProtocol=True)) # Bind history loaded event to loadingDone method
 
         self.newtab.newTabFrame.bind("<<URLChanged>>",self.newTabClick)
 
@@ -202,7 +207,6 @@ class newFrame:
                 self.historyFrame.history_frame.pack_forget()
                 self.bookmarksFrame.bookmarks_frame.pack(fill="both", side="top", expand=True)
                 self.tabTitle = "Bookmarks"
-                self.bookmarksFrame.loadTreeview()
                 try:
                     if subpage[3].startswith("search?q="):
                         searchTemp = subpage[3].split("\"")[1:]
@@ -266,10 +270,16 @@ class newFrame:
         print("[TABFRAME] New Tab URL clicked:", url)
         self.goToPage(page=url)
 
-    def historyClicked(self,event=None):
-        historyURL = self.historyFrame.historyURL
-        print("[TABFRAME] History URL clicked:", historyURL)
-        self.goToPage(page=historyURL, doNotAddToSessionHistory=False, doNotAddToHistory=False)
+    def customProtocolClicked(self,event=None,page=None):
+        if page == "history":
+            newURL = self.historyFrame.historyURL
+        elif page == "bookmarks":
+            newURL = self.bookmarksFrame.bookmarksURL
+        else:
+            newURL = self.historyFrame.historyURL
+            print("[TABFRAME] No protocol specified, assuming history. This might get deprecated in future versions.")
+        print("[TABFRAME] Custom URL clicked:", newURL)
+        self.goToPage(page=newURL, doNotAddToSessionHistory=False, doNotAddToHistory=False)
         
     def setAddressBar(self,page):
         print("Updating page")

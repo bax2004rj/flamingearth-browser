@@ -50,7 +50,7 @@ class Bookmarks:
         self.foldersList = ttk.Treeview(self.sidebar)
         self.foldersList.bind("<<TreeviewSelect>>", self.jumpToSubfolder)
         self.foldersList["columns"]=["folders"]
-        self.foldersList.column("#0",width=0,stretch=tkinter.NO)
+        self.foldersList.column("#0",width=16,stretch=tkinter.NO)
         self.foldersList.column("folders",width=200)
         self.foldersList.heading("folders",text="Folders")
         self.foldersList.pack(side="top",fill="both",expand=1)
@@ -198,7 +198,7 @@ class Bookmarks:
                 self.bookmarks_list.event_generate("<<DoneLoading>>")
             self.currentlyLoadedItems=self.targetLoadedItems
 
-    def loadTreeview(self,parent="",items=fileHandler.bookmarks,isFirst=True): # Recursively load all items.
+    def loadTreeview(self,parent="",items=fileHandler.bookmarks,isFirst=True,parentText=""): # Recursively load all items.
         #if isFirst:
         #    for i in self.foldersList.get_children():
         #        self.foldersList.delete(i)
@@ -206,8 +206,9 @@ class Bookmarks:
                 print(f"item type {i}")
                 if i["type"] == "folder":
                     print(f"[Bookmarks] processing {i["title"]}")
-                    self.foldersList.insert(parent,tkinter.END,values=[i['title']])
-                    self.loadTreeview(i["title"],i["items"],False)
+                    newParentText= parentText+"/"+i['title']
+                    self.foldersList.insert(parent,tkinter.END,iid=i,values=[i['title']],text=newParentText)
+                    self.loadTreeview(i,i["items"],False,newParentText)
         self.foldersList.update()
 
     def destroyAllItems(self):
@@ -241,9 +242,11 @@ class Bookmarks:
         self.bookmarks_container.configure(scrollregion=self.bookmarks_container.bbox("all"))
     
     def jumpToSubfolder(self,event = None):
-        selected_folder = "None" ##self.foldersList.get(self.foldersList.curselection()) #Blanked out until it isnt a problem
+        selected_folder_dict = self.foldersList.item(self.foldersList.focus()) #Blanked out until it isnt a problem
+        print(selected_folder_dict)
+        selected_folder = selected_folder_dict["text"]
         print(f"[Bookmarks] Jumping to folder: {selected_folder}")
-        self.setUrl(f"flamingearth://bookmarks/{selected_folder}")
+        self.setUrl(f"flamingearth://bookmarks{selected_folder}")
 
     def enterSearch(self,event=None):
         if not self.searching:

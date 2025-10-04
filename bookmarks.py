@@ -54,6 +54,7 @@ class Bookmarks:
         self.foldersList.column("folders",width=200)
         self.foldersList.heading("folders",text="Folders")
         self.foldersList.pack(side="top",fill="both",expand=1)
+        self.foldersDropdownOptions = ["/"]
 
         self.bookmarks_container = tkinter.Canvas(self.bookmarks_frame)
         self.bookmarks_container.pack(side="right", fill="both", expand=True)
@@ -199,15 +200,17 @@ class Bookmarks:
             self.currentlyLoadedItems=self.targetLoadedItems
 
     def loadTreeview(self,parent="",items=fileHandler.bookmarks,isFirst=True,parentText=""): # Recursively load all items.
-        #if isFirst:
-        #    for i in self.foldersList.get_children():
-        #        self.foldersList.delete(i)
+        if isFirst:
+            self.foldersDropdownOptions=["/"]
+            for i in self.foldersList.get_children():
+                self.foldersList.delete(i)
         for i in items:
                 print(f"item type {i}")
                 if i["type"] == "folder":
                     print(f"[Bookmarks] processing {i["title"]}")
                     newParentText= parentText+"/"+i['title']
                     self.foldersList.insert(parent,tkinter.END,iid=i,values=[i['title']],text=newParentText)
+                    self.foldersDropdownOptions.append(newParentText) #Add folder item for folder select dropdowns
                     self.loadTreeview(i,i["items"],False,newParentText)
         self.foldersList.update()
 
@@ -333,20 +336,23 @@ class Bookmarks:
         if title is not None:
             self.titleEntry.delete(0,tkinter.END)
             self.titleEntry.insert(0,string=title)
+        self.urlVar = tkinter.StringVar(self.addWindow)
         if url is None:
             self.urlText = tkinter.Label(self.addWindow,text="URL")
             self.urlText.pack(side="top")
-            self.urlEntry = ttk.Entry(self.addWindow)
+            self.urlEntry = ttk.Entry(self.addWindow,textvariable=self.urlVar)
             self.urlEntry.pack(side="top")
+        else:
+            self.urlVar.set(url)
         self.folderText = tkinter.Label(self.addWindow,text="Folder")
         self.folderText.pack(side="top")
-        self.folderSelector = ttk.Combobox(self.addWindow)
+        self.folderSelector = ttk.Combobox(self.addWindow,values=self.foldersDropdownOptions)
         self.folderSelector.pack(side="top")
 
         self.buttonFrame = ttk.Frame(self.addWindow,style="Card.TFrame")
         self.buttonFrame.pack(side="bottom", fill="x")
 
-        self.saveButton = ttk.Button(self.buttonFrame, text="Save", style="Accent.TButton")
+        self.saveButton = ttk.Button(self.buttonFrame, text="Save", style="Accent.TButton",command=self.saveBookmark)
         self.saveButton.pack(side="right")
         if edit==True:
             self.deleteButton = ttk.Button(self.buttonFrame,text="Delete")
@@ -367,19 +373,52 @@ class Bookmarks:
             self.folderTitleEntry.insert(0,string=title)
         self.folderText = tkinter.Label(self.addFolderWindow,text="Folder")
         self.folderText.pack(side="top")
-        self.folderSelector = ttk.Combobox(self.addFolderWindow)
+        self.folderSelector = ttk.Combobox(self.addFolderWindow,values=self.foldersDropdownOptions)
         self.folderSelector.pack(side="top")
 
         self.buttonFrame = ttk.Frame(self.addFolderWindow,style="Card.TFrame")
         self.buttonFrame.pack(side="bottom", fill="x")
 
-        self.saveButton = ttk.Button(self.buttonFrame, text="Save", style="Accent.TButton")
+        self.saveButton = ttk.Button(self.buttonFrame, text="Save", style="Accent.TButton", command=self.saveFolder)
         self.saveButton.pack(side="right")
         if edit==True:
             self.deleteButton = ttk.Button(self.buttonFrame,text="Delete")
             self.deleteButton.pack(side="right")
         self.cancelButton = ttk.Button(self.buttonFrame, text="Cancel", command=self.addFolderWindow.destroy)
         self.cancelButton.pack(side="right")
+
+    def saveBookmark(self):
+        title = self.titleEntry.get()
+        url = self.urlVar.get()
+        folder = self.folderSelector.get()
+        createFolder = False
+        userAsked = False
+        if folder not in self.foldersDropdownOptions:
+            userAsked = True
+            createFolder = messagebox.askyesno("Folder does not exist",f"The folder {folder} does not exist. Would you like to make it?")
+        if createFolder == True:
+            print("[BOOKMARKS] Folder being created")
+        elif createFolder == False and userAsked:
+            print("[BOOKMARKS] Bookmarks cannot be placed in a folder that doesn't exist.")
+            self.addWindow.destroy()
+            return
+        self.addWindow.destroy()
+    
+    def saveFolder(self):
+        title = self.folderTitleEntry.get()
+        folder = self.folderSelector.get()
+        createFolder = False
+        userAsked = False
+        if folder not in self.foldersDropdownOptions:
+            createFolder = messagebox.askyesno("Folder does not exist",f"The folder {folder} does not exist. Would you like to make it?")
+            userAsked = True
+        if createFolder == True:
+            print("[BOOKMARKS] Parent folders are being created")
+        elif createFolder == False and userAsked:
+            print("[BOOKMARKS] Folders cannot be placed in a folder that doesn't exist.")
+            self.addWindow.destroy()
+            return
+        self.addFolderWindow.destroy()
 
 class BookmarkBar:
     def __init__(self,tab):

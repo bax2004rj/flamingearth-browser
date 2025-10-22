@@ -151,7 +151,7 @@ class newFrame:
                 self.historyFrame.history_frame.pack_forget()
             except Exception:
                 print("Flamingearth protocol frame did not need to be destroyed")
-        if protocol == "http" or protocol == "https" or protocol == "file" or protocol == "about":
+        if protocol == "http" or protocol == "https" or protocol == "file" or protocol == "about" or protocol == "view-source":
             try:
                 self.browserView.showBrowserView()
                 self.zoomButton.configure(state="normal") # Enable zoom menu
@@ -313,11 +313,12 @@ class newFrame:
         if (not IsFromCustomProtocol) and newTabTitle != self.tabTitle:
             self.tabTitle =  newTabTitle# Get the current title from the browser
             self.tabIconURL = self.browserView.browser.icon # Get the current icon from the browser        
-            if not self.tabIconURL == None:
+            if not self.tabIconURL == None or not self.tabIconURL == '':
                 try:
-                    self.image_data = urllib.request.urlopen(self.tabIconURL).read()
-                    self.iconFile = fileHandler.saveIcon(self.image_data)
-                    self.tabIcon = ImageTK.PhotoImage(file=self.iconFile)
+                    self.iconFile = fileHandler.saveIcon(self.tabIconURL)
+                    self.icon = Image.open(self.iconFile)
+                    self.resizedIcon=self.icon.resize((32,32))
+                    self.tabIcon = ImageTK.PhotoImage(self.resizedIcon)
                     print("[TabFrame] New icon set successfully")
                 except Exception as e:
                     print("[TabFrame] Error loading icon from URL:", e)

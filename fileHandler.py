@@ -1,6 +1,7 @@
 import os
 import darkdetect
 import json
+import urllib.request
 from collections import Counter
 from itertools import repeat, chain
 
@@ -211,8 +212,14 @@ def saveDownloads():
     with open(downloadsFile, 'w') as file:
         json.dump(downloadsFileOut, file, indent=4)
 
-def saveIcon(image_data):
+def saveIcon(url): ## Save URL icons to historyIcons folder. Will check if the image has already been saved first.
     global historyIconsFile
+    image_data = urllib.request.urlopen(url).read()
+    for i in historyIcons:
+        with open(i,'rb') as image:
+            if image.read()==image_data:
+                print("[FILEHANDLER] Identical saved icon found and linked.")
+                return i
     saveLocation = os.path.join(historyIconsFile,f"{len(historyIcons)}.png")
     with open(saveLocation, 'wb') as icon_file:
         icon_file.write(image_data)

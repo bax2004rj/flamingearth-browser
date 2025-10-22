@@ -6,6 +6,7 @@ import os
 import datetime
 import humanize
 import tkcalendar
+from PIL import Image, ImageTk
 
 class History:
     def __init__(self,tab):
@@ -255,7 +256,9 @@ class History:
 
                 # Generate item frame
                 self.history_items.append(ttk.Frame(self.history_list,cursor="hand2"))
-                self.history_items[-1].iconImage = tkinter.PhotoImage(file=fileHandler.historyIcons[itemNumber] if os.path.exists(fileHandler.historyIcons[itemNumber]) else fileHandler.noIcon)
+                self.history_items[-1].imageData = Image.open(fileHandler.historyIcons[itemNumber] if os.path.exists(fileHandler.historyIcons[itemNumber]) else fileHandler.noIcon)
+                self.history_items[-1].imageResized = self.history_items[-1].imageData.resize((32,32))
+                self.history_items[-1].iconImage = tkinter.PhotoImage()
                 self.history_items[-1].iconLabel = ttk.Label(self.history_items[-1], text=fileHandler.historyTitles[itemNumber],image=self.history_items[-1].iconImage, style="TButton", compound="left")
                 self.history_items[-1].iconLabel.pack(side="top", fill = "x")
                 self.history_items[-1].bottomFrame = ttk.Frame(self.history_items[-1])
@@ -300,7 +303,9 @@ class History:
 
                 # Generate item frame
                 self.history_items.append(ttk.Frame(self.history_list,cursor="hand2"))
-                self.history_items[-1].iconImage = tkinter.PhotoImage(file=fileHandler.historyIcons[itemNumber] if os.path.exists(fileHandler.historyIcons[itemNumber]) else fileHandler.noIcon)
+                self.history_items[-1].imageData = Image.open(fileHandler.historyIcons[itemNumber] if os.path.exists(fileHandler.historyIcons[itemNumber]) else fileHandler.noIcon)
+                self.history_items[-1].imageResized = self.history_items[-1].imageData.resize((32,32))
+                self.history_items[-1].iconImage = tkinter.PhotoImage()
                 self.history_items[-1].iconLabel = ttk.Label(self.history_items[-1], text=fileHandler.historyTitles[itemNumber],image=self.history_items[-1].iconImage, style="TButton", compound="left")
                 self.history_items[-1].iconLabel.pack(side="top", fill = "x")
                 self.history_items[-1].bottomFrame = ttk.Frame(self.history_items[-1])

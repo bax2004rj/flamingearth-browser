@@ -113,9 +113,10 @@ class newFrame:
         self.zoomMenu.add_command(label="Reset",command = lambda: self.browserView.zoomReset(self.zoomMenu,self.zoomButton))
         self.zoomMenu.add_command(label="-25%",command = lambda: self.browserView.zoomOut(self.zoomMenu,self.zoomButton))
 
-        self.browserView.browser.bind("<<DownloadingResource>>",self.pageChanged) # Bind link clicked event to pageChanged method
+        self.browserView.browser.bind("<<UrlChanged>>",self.pageChanged) # Bind link clicked event to pageChanged method
         self.browserView.browser.bind("<<DoneLoading>>",self.loadingDone) # Bind page loaded event to loadingDone method
-        self.browserView.browser.bind("<<TitleChanged>>",self.changeTabTitle) # Bind URL changed event to pageChanged method
+        self.browserView.browser.bind("<<TitleChanged>>",self.changeTabTitle) # Bind URL changed event to titleChanged method
+        self.browserView.browser.bind("<<IconChanged>>",self.changeTabIcon) # Bind icon changed event to iconChanged method
 
         self.historyFrame.history_list.bind("<<HistoryURLClicked>>", self.customProtocolClicked) # Bind history URL clicked event to goToPage method
         self.historyFrame.history_list.bind("<<DoneLoading>>",lambda e:self.loadingDone(fromFlamingearthProtocol=True)) # Bind history loaded event to loadingDone method
@@ -311,30 +312,35 @@ class newFrame:
         print("[TabFrame] Tab title event given")
         newTabTitle = self.browserView.browser.title
         if (not IsFromCustomProtocol) and newTabTitle != self.tabTitle:
-            self.tabTitle =  newTabTitle# Get the current title from the browser
-            self.tabIconURL = self.browserView.browser.icon # Get the current icon from the browser        
+            self.tabTitle =  newTabTitle# Get the current title from the browser        
+        elif IsFromCustomProtocol:
+            self.tabTitle = CustomTitle
+            self.iconFile = customIcon
+        else:
+            print("[TabFrame] Tab title did not need to update")
+        self.tabFrame.event_generate("<<TabTitleChanged>>") # Trigger the event with the new title
+
+    def changeTabIcon(self,event=None, IsFromCustomProtocol = False, customIcon = fileHandler.noIcon):
+        if not IsFromCustomProtocol:
+            self.tabIconURL = self.browserView.browser.icon # Get the current icon from the browser
             if not self.tabIconURL == None or not self.tabIconURL == '':
-                try:
-                    self.iconFile = fileHandler.saveIcon(self.tabIconURL)
-                    self.icon = Image.open(self.iconFile)
-                    self.resizedIcon=self.icon.resize((32,32))
-                    self.tabIcon = ImageTK.PhotoImage(self.resizedIcon)
-                    print("[TabFrame] New icon set successfully")
-                except Exception as e:
-                    print("[TabFrame] Error loading icon from URL:", e)
-                    self.iconFile = fileHandler.noIcon
-                    self.tabIcon = ImageTK.PhotoImage(file=fileHandler.noIcon)
+                    try:
+                        self.iconFile = fileHandler.saveIcon(self.tabIconURL)
+                        self.icon = Image.open(self.iconFile)
+                        self.resizedIcon=self.icon.resize((32,32))
+                        self.tabIcon = ImageTK.PhotoImage(self.resizedIcon)
+                        print("[TabFrame] New icon set successfully")
+                    except Exception as e:
+                        print("[TabFrame] Error loading icon from URL:", e)
+                        self.iconFile = fileHandler.noIcon
+                        self.tabIcon = ImageTK.PhotoImage(file=fileHandler.noIcon)
             else:
                 self.iconFile = fileHandler.noIcon
                 self.tabIcon = ImageTK.PhotoImage(file=fileHandler.noIcon)
                 print("[TabFrame] Tab icon URL not set")
         elif IsFromCustomProtocol:
-            self.tabTitle = CustomTitle
-            self.iconFile = customIcon
-            self.tabIcon = ImageTK.PhotoImage(file=self.iconFile)
-        else:
-            print("[TabFrame] Tab title did not need to update")
-        self.tabFrame.event_generate("<<TabTitleChanged>>") # Trigger the event with the new title
+            self.tabIcon =fileHandler.noIcon
+        self.tabFrame.event_generate("<<TabTitleChanged>>")
 
     def goHome(self,event=None):
         self.goToPage(page = self.homepage)

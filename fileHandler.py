@@ -221,6 +221,8 @@ def saveIcon(url): ## Save URL icons to historyIcons folder. Will check if the i
                 print("[FILEHANDLER] Identical saved icon found and linked.")
                 return i
     saveLocation = os.path.join(historyIconsFile,f"{len(historyIcons)}.png")
+    if os.path.isdir(historyIconsFile):
+        os.makedirs(historyIconsFile)
     with open(saveLocation, 'wb') as icon_file:
         icon_file.write(image_data)
     print("[FILEHANDLER] Icon saved successfully.")

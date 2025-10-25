@@ -175,6 +175,8 @@ class newTab():
         while self.stopHoverDetection==False:
             if self.stopHoverDetection:
                 break
+            # Fallback URL detection (since <<UrlChanged>> doesn't work)
+            currentURL=self.browser.current_url
             time.sleep(0.01)
             try:
                 element = self.browser.get_currently_hovered_element()
@@ -212,4 +214,7 @@ class newTab():
                 pass
             # TODO for future: Add different versions of the context menu for differnt items
             previousElement = element
+            # Test URL in fallback detection
+            if currentURL != self.browser.current_url:
+                self.browser.event_generate("<<UrlChanged>>")
         print("[BrowserTab] Updater process successfully stopped")

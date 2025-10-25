@@ -68,8 +68,10 @@ downloadSource = [] # Downloads source list
 def loadSettings():
     global autodark, darkmode, menuBar, downloads, bookmarks, settingsFile, homepage, notifyForTabsOnQuit, tkinterTheme, displayBookmarks, newtabDisplayMode, newtabItems, browserFlags,searchEngine,searchEngineDefaultSpaceReplacer
     # Create appdata directory if it doesn't exist
-    if not os.path.exists(appData):
+    try:
         os.makedirs(appData)
+    except FileExistsError:
+        print("[FileHandler] Icons directory exists")
     # Load settings from file
     if os.path.exists(settingsFile):
         print ("[FILEHANDLER] Settings file found, loading settings...")

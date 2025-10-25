@@ -53,7 +53,9 @@ class newTab():
                         url = fileHandler.historyRanked[i]
                         historyItem = fileHandler.historyURL.index(url)
                         title = fileHandler.historyTitles[historyItem]
-                        icon = tkinter.PhotoImage(file=fileHandler.historyIcons[historyItem])
+                        originalicon = Image.open(fileHandler.historyIcons[historyItem])
+                        resizedIcon=originalicon.resize((32,32))
+                        icon = ImageTk.PhotoImage(resizedIcon)
                         self.newestImages.append(icon)
                     except IndexError:
                         title = "Unset"

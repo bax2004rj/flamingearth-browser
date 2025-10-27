@@ -68,6 +68,7 @@ class main():
         self.processCount = 0 
         self.homepage = "flamingearth://newtab"
         self.app.bind("<<TabTitleChanged>>",self.tabEdit)
+        self.app.bind("<<TabIconChanged>>",self.tabIcon)
         ##self.app.bind("<<NotebookTabClosed>>",self.checkToQuit)
         self.app.protocol("WM_DELETE_WINDOW",self.onQuit)
 
@@ -154,8 +155,6 @@ class main():
             frameID=self.tabFrames.index(event.widget)
             print(frameID)
             newTitle = self.tabProcesses[frameID].tabTitle
-            newIcon = self.tabProcesses[frameID].tabIcon
-            print(newIcon)
             newTitleTruncated = newTitle
             print(len(newTitle))
             if len(newTitle)>fileHandler.tabWidth:
@@ -163,7 +162,7 @@ class main():
             elif len(newTitle)<fileHandler.tabWidth:
                 newTitleTruncated = newTitle.ljust(fileHandler.tabWidth-len(newTitle))
             print(newTitleTruncated)
-            self.tabs.tab(event.widget, text=newTitleTruncated, image = newIcon)  # event.data[0] is the new title
+            self.tabs.tab(event.widget, text=newTitleTruncated)  # event.data[0] is the new title
             self.tabs.update()
             if self.tabsMenu.cget("tearoff")==True:  
                 self.tabsMenu.entryconfig(frameID+1,label = newTitle,value=newTitleTruncated)
@@ -175,7 +174,17 @@ class main():
             self.app.winfo_toplevel().title(f"{newTitle} | Flamingearth Browser v1.0a")
 
         except Exception as e:
-            print(f"[Main] Error editing tab title: {e}")
+            print(f"[Main] Error editing tab title: {type(e)}: {e}, arguments:{e.args}")
+            self.app.winfo_toplevel().title(f"WARNING WHEN EDITING TITLE, SEE TERMINAL| Flamingearth Browser v1.0a")
+
+    def tabIcon(self,event):
+        try:
+            frameID=self.tabFrames.index(event.widget)
+            newIcon = self.tabProcesses[frameID].tabIcon
+            print(newIcon)
+            self.tabs.tab(event.widget, image=newIcon)
+        except Exception as e:
+            print(f"[Main] Error editing tab icon: {type(e)}: {e}, arguments:{e.args}")
 
     def changeTab(self,event):
         itemID = self.tabs.index(self.tabs.select())

@@ -340,7 +340,7 @@ class newFrame:
                 print("[TabFrame] Tab icon URL not set")
         elif IsFromCustomProtocol:
             self.tabIcon =fileHandler.noIcon
-        self.tabFrame.event_generate("<<TabTitleChanged>>")
+        self.tabFrame.event_generate("<<TabIconChanged>>")
 
     def goHome(self,event=None):
         self.goToPage(page = self.homepage)

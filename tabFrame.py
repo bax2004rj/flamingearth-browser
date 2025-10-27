@@ -113,7 +113,7 @@ class newFrame:
         self.zoomMenu.add_command(label="Reset",command = lambda: self.browserView.zoomReset(self.zoomMenu,self.zoomButton))
         self.zoomMenu.add_command(label="-25%",command = lambda: self.browserView.zoomOut(self.zoomMenu,self.zoomButton))
 
-        self.browserView.browser.bind("<<UrlChanged>>",self.pageChanged) # Bind link clicked event to pageChanged method
+        self.browserView.browser.bind("<<DownloadingResource>>",self.pageChanged) # Bind link clicked event to pageChanged method
         self.browserView.browser.bind("<<DoneLoading>>",self.loadingDone) # Bind page loaded event to loadingDone method
         self.browserView.browser.bind("<<TitleChanged>>",self.changeTabTitle) # Bind URL changed event to titleChanged method
         self.browserView.browser.bind("<<IconChanged>>",self.changeTabIcon) # Bind icon changed event to iconChanged method

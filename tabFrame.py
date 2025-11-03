@@ -117,6 +117,7 @@ class newFrame:
         self.browserView.browser.bind("<<DoneLoading>>",self.loadingDone) # Bind page loaded event to loadingDone method
         self.browserView.browser.bind("<<TitleChanged>>",self.changeTabTitle) # Bind URL changed event to titleChanged method
         self.browserView.browser.bind("<<IconChanged>>",self.changeTabIcon) # Bind icon changed event to iconChanged method
+        self.browserView.browser.bind("<<UrlChanged>>", self.setReload)
 
         self.historyFrame.history_list.bind("<<HistoryURLClicked>>", self.customProtocolClicked) # Bind history URL clicked event to goToPage method
         self.historyFrame.history_list.bind("<<DoneLoading>>",lambda e:self.loadingDone(fromFlamingearthProtocol=True)) # Bind history loaded event to loadingDone method
@@ -286,6 +287,9 @@ class newFrame:
         print("Updating page")
         self.currentAddress.set(page)
         self.addressBar.update()
+
+    def setReload(self):
+        self.browserView.loading = True
         self.refreshButton.configure(text = "X")
     
     def loadingDone(self,event=None,fromFlamingearthProtocol=False):

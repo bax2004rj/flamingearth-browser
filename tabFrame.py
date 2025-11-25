@@ -122,7 +122,7 @@ class newFrame:
         self.historyFrame.history_list.bind("<<HistoryURLClicked>>", self.customProtocolClicked) # Bind history URL clicked event to goToPage method
         self.historyFrame.history_list.bind("<<DoneLoading>>",lambda e:self.loadingDone(fromFlamingearthProtocol=True)) # Bind history loaded event to loadingDone method
 
-        self.bookmarksFrame.bookmarks_list.bind("<<BookmarksURLClicked>>", lambda page = "bookmarks": self.customProtocolClicked(page=page)) # Bind history URL clicked event to goToPage method
+        self.bookmarksFrame.bookmarks_list.bind("<<BookmarksURLClicked>>", lambda e, origin = "bookmarks": self.customProtocolClicked(e, origin=origin)) # Bind history URL clicked event to goToPage method
         self.bookmarksFrame.bookmarks_list.bind("<<DoneLoading>>",lambda e:self.loadingDone(fromFlamingearthProtocol=True)) # Bind history loaded event to loadingDone method
 
         self.newtab.newTabFrame.bind("<<URLChanged>>",self.newTabClick)
@@ -151,6 +151,7 @@ class newFrame:
                 self.newtab.newTabFrame.pack_forget()
                 self.settingsFrame.settings_frame.pack_forget()
                 self.historyFrame.history_frame.pack_forget()
+                self.bookmarksFrame.bookmarks_frame.pack_forget()
             except Exception:
                 print("Flamingearth protocol frame did not need to be destroyed")
         if protocol == "http" or protocol == "https" or protocol == "file" or protocol == "about" or protocol == "view-source":
@@ -209,6 +210,7 @@ class newFrame:
                 self.historyFrame.history_frame.pack_forget()
                 self.bookmarksFrame.bookmarks_frame.pack(fill="both", side="top", expand=True)
                 self.tabTitle = "Bookmarks"
+                self.bookmarksFrame.bookmarksURL = page
                 try:
                     if subpage[3].startswith("search?q="):
                         searchTemp = subpage[3].split("\"")[1:]
@@ -218,7 +220,10 @@ class newFrame:
                         self.bookmarksFrame.searchText.set(search)
                         self.bookmarksFrame.search_bar.configure(textvariable = self.historyFrame.searchText)
                         self.bookmarksFrame.search()
-                    # TODO: Add subfolder handling
+                    else:
+                        print("[TabFrame] Requested subpage is likely a subfolder. Loading as usual.")
+                        self.bookmarksFrame.load_bookmarks()
+                        self.bookmarksFrame.isEnabled = True
                 except IndexError:
                     print("[TabFrame] No subpages requested")
                     self.bookmarksFrame.load_bookmarks()
@@ -272,10 +277,10 @@ class newFrame:
         print("[TABFRAME] New Tab URL clicked:", url)
         self.goToPage(page=url)
 
-    def customProtocolClicked(self,event=None,page=None):
-        if page == "history":
+    def customProtocolClicked(self,event=None,origin=None):
+        if origin == "history":
             newURL = self.historyFrame.historyURL
-        elif page == "bookmarks":
+        elif origin == "bookmarks":
             newURL = self.bookmarksFrame.bookmarksURL
         else:
             newURL = self.historyFrame.historyURL

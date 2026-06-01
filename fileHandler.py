@@ -139,11 +139,10 @@ def loadBookmarks():
     global bookmarksFile,bookmarks
     if os.path.exists(bookmarksFile):
         with open(bookmarksFile, 'r') as file:
-            bookmarksJson = json.load(file)
-            bookmarks = bookmarksJson.get('bookmarks', [])
+            bookmarks = json.load(file)['bookmarks']
     else:
         bookmarksFileOut = {
-            'bookmarks': bookmarks,
+            'bookmarks': bookmarks
         }
         with open(bookmarksFile, 'w') as file:
             json.dump(bookmarksFileOut, file, indent=4)
@@ -195,6 +194,28 @@ def saveHistory():
     }
     with open(historyFile, 'w') as file:
         json.dump(historyFileOut, file, indent=4)
+
+def appendBookmarks(data,path,save=True):
+    bookmarksFolder = path.split("/")
+    print(f"[Bookmarks] Attempting to navigate to folder {bookmarksFolder}")
+    if path == "/":
+        bookmarks.append(data)
+    else:
+        for i in bookmarksFolder: # Test subfolder existence
+            itemExists = False
+            # Ensure we are iterating a list of items
+            for j in bookmarks:
+                print(j)
+                if i == j.get("title"):
+                    print(f"[FILEHANDLER] Subfolder {i} exists!")
+                    # j is a folder dict; get its "items" list (or empty list if none)
+                    j['items'].append(data)
+                    return 0
+            if not itemExists:
+                print(f"[FILEHANDLER] Subfolder {i} does not exist!")
+                return 1
+    if save:
+        saveBookmarks()
 
 def saveBookmarks():
     global bookmarksFile,bookmarks

@@ -110,11 +110,11 @@ class Bookmarks:
                         # j is a folder dict; get its "items" list (or empty list if none)
                         bookmarksList = j.get("items", [])
                         itemExists = True
-                        break
+                        return bookmarksList
                 if not itemExists:
                     print(f"[Bookmarks] Subfolder {i} does not exist!")
                     bookmarksList = [] # Set list to nothing to show no bookmarks message.
-                    break
+                    return bookmarksList
         return bookmarksList
 
     def load_bookmarks(self,supressEventGeneration = False):
@@ -190,12 +190,12 @@ class Bookmarks:
                 self.foldersList.delete(i)
         for i in items:
                 print(f"item type {i}")
-                if i["type"] == "folder":
-                    print(f"[Bookmarks] processing {i["title"]}")
+                if i['type'] == "folder":
+                    print(f"[Bookmarks] processing {i['title']}")
                     newParentText= parentText+"/"+i['title']
                     self.foldersList.insert(parent,tkinter.END,iid=i,values=[i['title']],text=newParentText)
                     self.foldersDropdownOptions.append(newParentText) #Add folder item for folder select dropdowns
-                    self.loadTreeview(i,i["items"],False,newParentText)
+                    self.loadTreeview(i,i['items'],False,newParentText)
         self.foldersList.update()
 
     def destroyAllItems(self):
@@ -309,7 +309,7 @@ class Bookmarks:
         else:
             print("Search still rendering")
     
-    def addBookmark(self,url=None,title=None,icon=None,edit=False,editIndex=None):
+    def addBookmark(self,url=None,title=None,icon=None,edit=False,editIndex=None,parentFolder = "/"):
         self.addWindow = tkinter.Toplevel()
         self.addWindow.title("Add Bookmark")
         self.addWindow.geometry("300x200")
@@ -330,7 +330,8 @@ class Bookmarks:
             self.urlVar.set(url)
         self.folderText = tkinter.Label(self.addWindow,text="Folder")
         self.folderText.pack(side="top")
-        self.folderSelector = ttk.Combobox(self.addWindow,values=self.foldersDropdownOptions)
+        self.fsVar = tkinter.StringVar(self.addWindow,parentFolder)
+        self.folderSelector = ttk.Combobox(self.addWindow,values=self.foldersDropdownOptions,textvariable=self.fsVar)
         self.folderSelector.pack(side="top")
 
         self.buttonFrame = ttk.Frame(self.addWindow,style="Card.TFrame")
@@ -344,7 +345,7 @@ class Bookmarks:
         self.cancelButton = ttk.Button(self.buttonFrame, text="Cancel", command=self.addWindow.destroy)
         self.cancelButton.pack(side="right")
     
-    def addFolder(self,title=None,edit=False,editIndex=None):
+    def addFolder(self,title=None,edit=False,editIndex=None,parentFolder = "/"):
         self.addFolderWindow = tkinter.Toplevel()
         self.addFolderWindow.title("Add Folder")
         self.addFolderWindow.geometry("300x200")
@@ -357,7 +358,8 @@ class Bookmarks:
             self.folderTitleEntry.insert(0,string=title)
         self.folderText = tkinter.Label(self.addFolderWindow,text="Folder")
         self.folderText.pack(side="top")
-        self.folderSelector = ttk.Combobox(self.addFolderWindow,values=self.foldersDropdownOptions)
+        self.fsVar = tkinter.StringVar(self.addFolderWindow,parentFolder)
+        self.folderSelector = ttk.Combobox(self.addFolderWindow,values=self.foldersDropdownOptions,textvariable=self.fsVar)
         self.folderSelector.pack(side="top")
 
         self.buttonFrame = ttk.Frame(self.addFolderWindow,style="Card.TFrame")
@@ -375,8 +377,14 @@ class Bookmarks:
         title = self.titleEntry.get()
         url = self.urlVar.get()
         folder = self.folderSelector.get()
+        icon = os.path.join(fileHandler.iconFolderPNG,"noIconPage.png")# TODO: allow user to set icon/use website icon.
         createFolder = False
         userAsked = False
+        if title == None or title == "":
+            title = "Untitled"
+        if url == None or url == "":
+            messagebox.showerror("No URL","No URL was provided, please provide one and try again")
+            return
         if folder not in self.foldersDropdownOptions:
             userAsked = True
             createFolder = messagebox.askyesno("Folder does not exist",f"The folder {folder} does not exist. Would you like to make it?")
@@ -387,7 +395,16 @@ class Bookmarks:
             self.addWindow.destroy()
             return
         self.addWindow.destroy()
-    
+        # Save data
+        saveJson = {
+                'title': title,
+                'type': "bookmark",
+                'icon': icon,
+                'url': url,
+        }
+        fileHandler.appendBookmarks(saveJson,folder)
+
+
     def saveFolder(self):
         title = self.folderTitleEntry.get()
         folder = self.folderSelector.get()
@@ -403,6 +420,12 @@ class Bookmarks:
             self.addWindow.destroy()
             return
         self.addFolderWindow.destroy()
+        saveJson = {
+                'title': title,
+                'type': "folder",
+                'items': [],
+        }
+        fileHandler.appendBookmarks(saveJson,folder)
 
 class BookmarkBar:
     def __init__(self,tab):

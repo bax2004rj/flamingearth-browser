@@ -76,6 +76,7 @@ class Bookmarks:
         self.previousDate = None
         self.searching = False
         self.searchRenderRunning = False
+        self.rendering = False
         # Chunk limits
         self.currentlyLoadedItems = 0
         self.targetLoadedItems = 16
@@ -84,10 +85,11 @@ class Bookmarks:
 
     def handle_scroll(self, y0, y1):
         self.bookmarks_scrollbar.set(y0,y1) # Set scrollbar length
-        if float(y1)>0.9 and self.isEnabled and self.searchRenderRunning == False: # Load in next chunk of bookmarks
+        if float(y1)>0.9 and self.isEnabled and not self.searchRenderRunning and not self.rendering: # Load in next chunk of bookmarks
+            print(f"[BOOKMARKS] New chunk loading, list length: {len(self.bookmarksList)}")
             newTargetLoadedItems = self.targetLoadedItems+16
-            if newTargetLoadedItems>len(fileHandler.bookmarks):
-                self.targetLoadedItems = len(fileHandler.bookmarks)
+            if newTargetLoadedItems>len(self.bookmarksList):
+                self.targetLoadedItems = len(self.bookmarksList)
             else:
                 self.targetLoadedItems = newTargetLoadedItems
             self.load_bookmarks(supressEventGeneration=True) # Load next chunk of bookmarks, but do not report it to tabFrame
@@ -104,13 +106,13 @@ class Bookmarks:
                     bookmarksList = []
                     break
                 for j in bookmarksList:
-                    print(j)
                     if i == j.get("title"):
                         print(f"[Bookmarks] Subfolder {i} exists!")
                         # j is a folder dict; get its "items" list (or empty list if none)
                         bookmarksList = j.get("items", [])
+                        print(f"[Bookmarks] Contents of subfolder: {bookmarksList}")
                         itemExists = True
-                        return bookmarksList
+                        break
                 if not itemExists:
                     print(f"[Bookmarks] Subfolder {i} does not exist!")
                     bookmarksList = [] # Set list to nothing to show no bookmarks message.
@@ -118,8 +120,9 @@ class Bookmarks:
         return bookmarksList
 
     def load_bookmarks(self,supressEventGeneration = False):
-        bookmarksList = self.checkDirExistenceAndReturn(self.bookmarksURL)
-        if len(bookmarksList) == 0 and not self.searching:
+        self.rendering = True
+        self.bookmarksList = self.checkDirExistenceAndReturn(self.bookmarksURL)
+        if len(self.bookmarksList) == 0 and not self.searching:
             print("[Bookmarks] No bookmarks")
             self.no_bookmarks_image = tkinter.PhotoImage(file=fileHandler.noShortcut)
             try:
@@ -142,36 +145,40 @@ class Bookmarks:
             if self.searching:
                 self.searchRenderRunning = True
             self.progress.pack(side="top", fill="x")
-            progress_steps = 100 / len(bookmarksList)
+            progress_steps = 100 / len(self.bookmarksList)
             ##self.bookmarks_seperators.clear()
             ##self.bookmarks_items.clear()
             try:
                 for i in range(self.targetLoadedItems-self.currentlyLoadedItems):
-                    item = bookmarksList[int(i)+self.currentlyLoadedItems]
-                    print(f"[Bookmarks] Processing item {item}")
-                    itemNumber = bookmarksList.index(item)
+                    item = self.bookmarksList[int(i)+self.currentlyLoadedItems]
+                    itemNumber = self.bookmarksList.index(item)
+                    print(f"[Bookmarks] Processing item {item}, item number: {itemNumber}")
                     self.progress.step(progress_steps)
 
                     # Generate item frame
                     self.bookmarks_items.append(ttk.Frame(self.bookmarks_list,cursor="hand2"))
-                    if bookmarksList[itemNumber]["type"]=="folder":
-                        self.bookmarks_items[-1].iconLabel = ttk.Label(self.bookmarks_items[-1], text=bookmarksList[itemNumber]["title"], style="TButton", compound="left") ##TODO: add image=self.bookmarks_items[-1].iconImage, back
+                    if self.bookmarksList[itemNumber]["type"]=="folder":
+                        self.bookmarks_items[-1].iconLabel = ttk.Label(self.bookmarks_items[-1], text=self.bookmarksList[itemNumber]["title"], style="TButton", compound="left") ##TODO: add image=self.bookmarks_items[-1].iconImage, back
                         self.bookmarks_items[-1].iconLabel.pack(side="top", fill = "x")
                         self.bookmarks_items[-1].bottomFrame = ttk.Frame(self.bookmarks_items[-1])
                         self.bookmarks_items[-1].bottomFrame.pack(side="top",fill="x")
-                    elif bookmarksList[itemNumber]["type"]=="bookmark":
-                        self.bookmarks_items[-1].iconImage = tkinter.PhotoImage(file=bookmarksList[itemNumber]["icon"] if os.path.exists(bookmarksList[itemNumber]["icon"]) else fileHandler.noIcon)
-                        self.bookmarks_items[-1].iconLabel = ttk.Label(self.bookmarks_items[-1], text=bookmarksList[itemNumber]["title"], style="TButton", compound="left") ##TODO: add image=self.bookmarks_items[-1].iconImage, back
+                        self.bookmarks_items[-1].itemNumber = itemNumber
+                        self.bookmarks_items[-1].bind("<Button-1>", lambda e, url=f"{self.bookmarksURL}/{self.bookmarksList[self.bookmarks_items[-1].itemNumber]["title"]}": self.setUrl(url))
+                        self.bookmarks_items[-1].iconLabel.bind("<Button-1>", lambda e, url=f"{self.bookmarksURL}/{self.bookmarksList[self.bookmarks_items[-1].itemNumber]["title"]}": self.setUrl(url))
+                        self.bookmarks_items[-1].bottomFrame.bind("<Button-1>", lambda e, url=f"{self.bookmarksURL}/{self.bookmarksList[self.bookmarks_items[-1].itemNumber]["title"]}": self.setUrl(url))
+                    elif self.bookmarksList[itemNumber]["type"]=="bookmark":
+                        self.bookmarks_items[-1].iconImage = tkinter.PhotoImage(file=self.bookmarksList[itemNumber]["icon"] if os.path.exists(self.bookmarksList[itemNumber]["icon"]) else fileHandler.noIcon)
+                        self.bookmarks_items[-1].iconLabel = ttk.Label(self.bookmarks_items[-1], text=self.bookmarksList[itemNumber]["title"], style="TButton", compound="left") ##TODO: add image=self.bookmarks_items[-1].iconImage, back
                         self.bookmarks_items[-1].iconLabel.pack(side="top", fill = "x")
                         self.bookmarks_items[-1].iconLabel.pack(side="top", fill = "x")
                         self.bookmarks_items[-1].bottomFrame = ttk.Frame(self.bookmarks_items[-1])
                         self.bookmarks_items[-1].bottomFrame.pack(side="top",fill="x")
-                        self.bookmarks_items[-1].urlLabel = tkinter.Label(self.bookmarks_items[-1].bottomFrame,text=f"{bookmarksList[itemNumber]['url']}", font=("TkDefaultFont",10,"italic"))
+                        self.bookmarks_items[-1].urlLabel = tkinter.Label(self.bookmarks_items[-1].bottomFrame,text=f"{self.bookmarksList[itemNumber]['url']}", font=("TkDefaultFont",10,"italic"))
                         self.bookmarks_items[-1].urlLabel.pack(side = "left")
                         self.bookmarks_items[-1].itemNumber = itemNumber
-                        self.bookmarks_items[-1].bind("<Button-1>", lambda e, url=bookmarksList[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
-                        self.bookmarks_items[-1].iconLabel.bind("<Button-1>",lambda e, url=bookmarksList[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
-                        self.bookmarks_items[-1].bottomFrame.bind("<Button-1>", lambda e, url=bookmarksList[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
+                        self.bookmarks_items[-1].bind("<Button-1>", lambda e, url=self.bookmarksList[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
+                        self.bookmarks_items[-1].iconLabel.bind("<Button-1>",lambda e, url=self.bookmarksList[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
+                        self.bookmarks_items[-1].bottomFrame.bind("<Button-1>", lambda e, url=self.bookmarksList[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
                     if self.searching:
                         self.searchRenderRunning = False
                     self.bookmarks_items[-1].pack(side = "top", anchor="w", fill="x")
@@ -182,6 +189,7 @@ class Bookmarks:
             if not supressEventGeneration:
                 self.bookmarks_list.event_generate("<<DoneLoading>>")
             self.currentlyLoadedItems=self.targetLoadedItems
+            self.rendering = False
 
     def loadTreeview(self,parent="",items=fileHandler.bookmarks,isFirst=True,parentText=""): # Recursively load all items.
         if isFirst:
@@ -213,9 +221,9 @@ class Bookmarks:
         self.bookmarks_container.configure(scrollregion=self.bookmarks_container.bbox("all"))
 
     def setUrl(self, url):
-        self.bookmarks_list.event_generate("<<BookmarksURLClicked>>")    
         self.bookmarksURL = url
         print(f"[Bookmarks] URL set to {self.bookmarksURL}")
+        self.bookmarks_list.event_generate("<<BookmarksURLClicked>>")
 
     def _center_bookmarks_list(self, event):
         canvas_width = event.width
@@ -229,7 +237,7 @@ class Bookmarks:
         self.bookmarks_container.configure(scrollregion=self.bookmarks_container.bbox("all"))
     
     def jumpToSubfolder(self,event = None):
-        selected_folder_dict = self.foldersList.item(self.foldersList.focus()) #Blanked out until it isnt a problem
+        selected_folder_dict = self.foldersList.item(self.foldersList.focus())
         print(selected_folder_dict)
         selected_folder = selected_folder_dict["text"]
         print(f"[Bookmarks] Jumping to folder: {selected_folder}")

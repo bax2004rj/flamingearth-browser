@@ -222,10 +222,16 @@ class newFrame:
                         self.bookmarksFrame.search()
                     else:
                         print("[TabFrame] Requested subpage is likely a subfolder. Loading as usual.")
+                        self.bookmarksFrame.currentlyLoadedItems = 0
+                        self.bookmarksFrame.targetLoadedItems = 16
+                        self.bookmarksFrame.destroyAllItems()
                         self.bookmarksFrame.load_bookmarks()
                         self.bookmarksFrame.isEnabled = True
                 except IndexError:
                     print("[TabFrame] No subpages requested")
+                    self.bookmarksFrame.currentlyLoadedItems = 0
+                    self.bookmarksFrame.targetLoadedItems = 16
+                    self.bookmarksFrame.destroyAllItems()
                     self.bookmarksFrame.load_bookmarks()
                     self.bookmarksFrame.isEnabled = True
             else:

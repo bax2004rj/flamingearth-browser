@@ -197,7 +197,7 @@ def saveHistory():
 
 def appendBookmarks(data,path,save=True):
     bookmarksFolder = path.split("/")
-    print(f"[Bookmarks] Attempting to navigate to folder {bookmarksFolder}")
+    print(f"[FILEHANDLER] Attempting to navigate to folder {bookmarksFolder}")
     if path == "/":
         bookmarks.append(data)
     else:
@@ -207,13 +207,44 @@ def appendBookmarks(data,path,save=True):
             for j in bookmarks:
                 print(j)
                 if i == j.get("title"):
+                    itemExists = True
                     print(f"[FILEHANDLER] Subfolder {i} exists!")
-                    # j is a folder dict; get its "items" list (or empty list if none)
+                    # j is a folder dict; append to its "items" list (or empty list if none)
                     j['items'].append(data)
+                    print("[FILEHANDLER] Item successfully added.")
                     return 0
-            if not itemExists:
-                print(f"[FILEHANDLER] Subfolder {i} does not exist!")
-                return 1
+        if not itemExists:
+            print(f"[FILEHANDLER] Subfolder {i} does not exist, nothing added")
+            return 1
+    if save:
+        saveBookmarks()
+
+def deleteBookmarks(title,itemType,path,save=True):
+    bookmarksFolder = path.split("/")
+    print(f"[FILEHANDLER] Attempting to navigate to folder {bookmarksFolder}")
+    if path == "/":
+        for i in bookmarks:
+            if i["title"]==title and i["type"]==itemType: # Match item and delete
+                bookmarks.pop(i)
+    else:
+        for i in bookmarksFolder: # Test subfolder existence
+            itemExists = False
+            # Ensure we are iterating a list of items
+            for j in bookmarks:
+                print(j)
+                if i == j.get("title"):
+                    print(f"[FILEHANDLER] Subfolder {i} exists!")
+                    # j is a folder dict; find the items in its "items" list (or empty list if none)
+                    for k in j:
+                        if k["title"]==title and k["type"]==itemType: # Match item and delete
+                            itemExists=True
+                            j.pop(k)
+                            print("[FILEHANDLER] Item successfully deleted.")
+                            break
+                    return 0
+        if not itemExists:
+            print(f"[FILEHANDLER] Subfolder {i} does not exist, nothing deleted.")
+            return 1
     if save:
         saveBookmarks()
 

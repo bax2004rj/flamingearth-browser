@@ -195,66 +195,88 @@ def saveHistory():
     with open(historyFile, 'w') as file:
         json.dump(historyFileOut, file, indent=4)
 
-def appendBookmarks(data,path,save=True):
-    bookmarksFolder = path.split("/")
-    print(f"[FILEHANDLER] Attempting to navigate to folder {bookmarksFolder}")
-    if path == "/":
-        bookmarks.append(data)
-    else:
+def checkDirExistenceAndReturn(url):
+    bookmarksList = bookmarks
+    if url.startswith("flamingearth://bookmarks"):
+        bookmarksFolder = url.split("/")[3:]
+        print(f"[FILEHANDLER] Attempting to navigate to folder {bookmarksFolder}")
         for i in bookmarksFolder: # Test subfolder existence
             itemExists = False
             # Ensure we are iterating a list of items
-            for j in bookmarks:
-                print(j)
+            if not isinstance(bookmarksList, list):
+                bookmarksList = []
+                break
+            for j in bookmarksList:
                 if i == j.get("title"):
+                    print(f"[Bookmarks] Subfolder {i} exists!")
+                    # j is a folder dict; get its "items" list (or empty list if none)
+                    bookmarksList = j.get("items", [])
+                    print(f"[Bookmarks] Contents of subfolder: {bookmarksList}")
                     itemExists = True
-                    print(f"[FILEHANDLER] Subfolder {i} exists!")
-                    # j is a folder dict; append to its "items" list (or empty list if none)
-                    j['items'].append(data)
-                    print("[FILEHANDLER] Item successfully added.")
-                    return 0
-        if not itemExists:
-            print(f"[FILEHANDLER] Subfolder {i} does not exist, nothing added")
-            return 1
+                    break
+            if not itemExists:
+                print(f"[Bookmarks] Subfolder {i} does not exist!")
+                bookmarksList = [] # Set list to nothing to show no bookmarks message.
+                return bookmarksList
+    return bookmarksList
+
+
+def appendBookmarks(data,path,save=True):
+    found = False
+    if path == "/" or path == '':
+        bookmarks.append(data)
+    else:
+        subfolder = checkDirExistenceAndReturn(f"flamingearth://bookmarks{path}")
+        subfolder.append(data)
+        print(f"[bookmarks] Output data: {subfolder}. Format: {type(subfolder)}")
     if save:
-        saveBookmarks()
+        saveBookmarks(bookmarks)
+    if not found:
+        print("[FILEHANDLER] Failed to add item.")
+        return 1
+    else:
+        return 0
 
 def deleteBookmarks(title,itemType,path,save=True):
     bookmarksFolder = path.split("/")
     print(f"[FILEHANDLER] Attempting to navigate to folder {bookmarksFolder}")
-    if path == "/":
+    found = False
+    if path == "/" or path == '':
         for i in bookmarks:
             if i["title"]==title and i["type"]==itemType: # Match item and delete
-                bookmarks.pop(i)
+                found = True
+                bookmarks.pop(bookmarks.index(i))
+                print("[FILEHANDLER] Bookmark deleted.")
+                break
     else:
-        for i in bookmarksFolder: # Test subfolder existence
-            itemExists = False
-            # Ensure we are iterating a list of items
-            for j in bookmarks:
-                print(j)
-                if i == j.get("title"):
-                    print(f"[FILEHANDLER] Subfolder {i} exists!")
-                    # j is a folder dict; find the items in its "items" list (or empty list if none)
-                    for k in j:
-                        if k["title"]==title and k["type"]==itemType: # Match item and delete
-                            itemExists=True
-                            j.pop(k)
-                            print("[FILEHANDLER] Item successfully deleted.")
-                            break
-                    return 0
-        if not itemExists:
-            print(f"[FILEHANDLER] Subfolder {i} does not exist, nothing deleted.")
-            return 1
+        subfolder = checkDirExistenceAndReturn(f"flamingearth://bookmarks/{path}")
+        for i in subfolder:
+            if i["title"]==title and i["type"]==itemType: # Match item and delete
+                found = True
+                subfolder.pop(subfolder.index(i))
+                print("[FILEHANDLER] Bookmark deleted.")
+                break
     if save:
         saveBookmarks()
+    if not found:
+        print("[FILEHANDLER] Failed to delete item.")
+        return 1
+    else:
+        return 0
 
-def saveBookmarks():
+def saveBookmarks(data=None):
     global bookmarksFile,bookmarks
-    bookmarksFileOut = {
-        'bookmarks': bookmarks,
-    }
+    if data==None:
+        bookmarksFileOut = {
+            'bookmarks': bookmarks,
+        }
+    else:
+        bookmarksFileOut = {
+            'bookmarks': data,
+        }
     with open(bookmarksFile, 'w') as file:
         json.dump(bookmarksFileOut, file, indent=4)
+
 
 def saveDownloads():
     global downloadsFile,downloads,downloadTime,downloadSource

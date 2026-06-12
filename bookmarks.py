@@ -80,6 +80,7 @@ class Bookmarks:
         # Chunk limits
         self.currentlyLoadedItems = 0
         self.targetLoadedItems = 16
+        self.iids = 0
         # Search
         self.foundIndicies = []
 
@@ -93,35 +94,10 @@ class Bookmarks:
             else:
                 self.targetLoadedItems = newTargetLoadedItems
             self.load_bookmarks(supressEventGeneration=True) # Load next chunk of bookmarks, but do not report it to tabFrame
-    
-    def checkDirExistenceAndReturn(self, url):
-        bookmarksList = fileHandler.bookmarks
-        if url.startswith("flamingearth://bookmarks"):
-            bookmarksFolder = url.split("/")[3:]
-            print(f"[Bookmarks] Attempting to navigate to folder {bookmarksFolder}")
-            for i in bookmarksFolder: # Test subfolder existence
-                itemExists = False
-                # Ensure we are iterating a list of items
-                if not isinstance(bookmarksList, list):
-                    bookmarksList = []
-                    break
-                for j in bookmarksList:
-                    if i == j.get("title"):
-                        print(f"[Bookmarks] Subfolder {i} exists!")
-                        # j is a folder dict; get its "items" list (or empty list if none)
-                        bookmarksList = j.get("items", [])
-                        print(f"[Bookmarks] Contents of subfolder: {bookmarksList}")
-                        itemExists = True
-                        break
-                if not itemExists:
-                    print(f"[Bookmarks] Subfolder {i} does not exist!")
-                    bookmarksList = [] # Set list to nothing to show no bookmarks message.
-                    return bookmarksList
-        return bookmarksList
 
     def load_bookmarks(self,supressEventGeneration = False):
         self.rendering = True
-        self.bookmarksList = self.checkDirExistenceAndReturn(self.bookmarksURL)
+        self.bookmarksList = fileHandler.checkDirExistenceAndReturn(self.bookmarksURL)
         if len(self.bookmarksList) == 0 and not self.searching:
             print("[Bookmarks] No bookmarks")
             self.no_bookmarks_image = tkinter.PhotoImage(file=fileHandler.noShortcut)
@@ -157,12 +133,19 @@ class Bookmarks:
 
                     # Generate item frame
                     self.bookmarks_items.append(ttk.Frame(self.bookmarks_list,cursor="hand2"))
+                    self.bookmarks_items[-1].itemNumber = itemNumber
                     if self.bookmarksList[itemNumber]["type"]=="folder":
                         self.bookmarks_items[-1].iconLabel = ttk.Label(self.bookmarks_items[-1], text=self.bookmarksList[itemNumber]["title"], style="TButton", compound="left") ##TODO: add image=self.bookmarks_items[-1].iconImage, back
                         self.bookmarks_items[-1].iconLabel.pack(side="top", fill = "x")
                         self.bookmarks_items[-1].bottomFrame = ttk.Frame(self.bookmarks_items[-1])
                         self.bookmarks_items[-1].bottomFrame.pack(side="top",fill="x")
-                        self.bookmarks_items[-1].itemNumber = itemNumber
+                        self.bookmarks_items[-1].operationsMenu = tkinter.Menu(self.bookmarks_items[-1].bottomFrame)
+                        self.bookmarks_items[-1].operationsMenu.add_command(label = "Edit",command = lambda title=self.bookmarksList[self.bookmarks_items[-1].itemNumber]["title"],path=self.bookmarksURL,edit=True,bookmark=self.bookmarksList[self.bookmarks_items[-1].itemNumber]: self.addFolder(title,edit,parentFolder=path,bookmark=bookmark))
+                        self.bookmarks_items[-1].operationsMenu.add_command(label = "Delete",command = lambda path=f"{self.bookmarksURL}/{self.bookmarksList[self.bookmarks_items[-1].itemNumber]["title"]}",bookmark=self.bookmarksList[self.bookmarks_items[-1].itemNumber]: self.deleteBookmark(path,bookmark))
+                        self.bookmarks_items[-1].operationsMenu.add_command(label = "Move",command = lambda path=f"{self.bookmarksURL}/{self.bookmarksList[self.bookmarks_items[-1].itemNumber]["title"]}",bookmark=self.bookmarksList[self.bookmarks_items[-1].itemNumber]: self.moveBookmark(path,bookmark))
+                        self.bookmarks_items[-1].operationsMenu.add_command(label = "Copy",command = lambda path=f"{self.bookmarksURL}/{self.bookmarksList[self.bookmarks_items[-1].itemNumber]["title"]}",bookmark=self.bookmarksList[self.bookmarks_items[-1].itemNumber]: self.copyBookmark(path,bookmark))
+                        self.bookmarks_items[-1].operationsButton=ttk.Menubutton(self.bookmarks_items[-1].bottomFrame,menu=self.bookmarks_items[-1].operationsMenu,text="≡")
+                        self.bookmarks_items[-1].operationsButton.pack(side="right")
                         self.bookmarks_items[-1].bind("<Button-1>", lambda e, url=f"{self.bookmarksURL}/{self.bookmarksList[self.bookmarks_items[-1].itemNumber]["title"]}": self.setUrl(url))
                         self.bookmarks_items[-1].iconLabel.bind("<Button-1>", lambda e, url=f"{self.bookmarksURL}/{self.bookmarksList[self.bookmarks_items[-1].itemNumber]["title"]}": self.setUrl(url))
                         self.bookmarks_items[-1].bottomFrame.bind("<Button-1>", lambda e, url=f"{self.bookmarksURL}/{self.bookmarksList[self.bookmarks_items[-1].itemNumber]["title"]}": self.setUrl(url))
@@ -170,15 +153,20 @@ class Bookmarks:
                         self.bookmarks_items[-1].iconImage = tkinter.PhotoImage(file=self.bookmarksList[itemNumber]["icon"] if os.path.exists(self.bookmarksList[itemNumber]["icon"]) else fileHandler.noIcon)
                         self.bookmarks_items[-1].iconLabel = ttk.Label(self.bookmarks_items[-1], text=self.bookmarksList[itemNumber]["title"], style="TButton", compound="left") ##TODO: add image=self.bookmarks_items[-1].iconImage, back
                         self.bookmarks_items[-1].iconLabel.pack(side="top", fill = "x")
-                        self.bookmarks_items[-1].iconLabel.pack(side="top", fill = "x")
                         self.bookmarks_items[-1].bottomFrame = ttk.Frame(self.bookmarks_items[-1])
                         self.bookmarks_items[-1].bottomFrame.pack(side="top",fill="x")
                         self.bookmarks_items[-1].urlLabel = tkinter.Label(self.bookmarks_items[-1].bottomFrame,text=f"{self.bookmarksList[itemNumber]['url']}", font=("TkDefaultFont",10,"italic"))
                         self.bookmarks_items[-1].urlLabel.pack(side = "left")
-                        self.bookmarks_items[-1].itemNumber = itemNumber
+                        self.bookmarks_items[-1].operationsMenu = tkinter.Menu(self.bookmarks_items[-1].bottomFrame)
+                        self.bookmarks_items[-1].operationsMenu.add_command(label = "Edit",command = lambda url=self.bookmarksList[self.bookmarks_items[-1].itemNumber]["url"],title=self.bookmarksList[self.bookmarks_items[-1].itemNumber]["title"],icon=self.bookmarksList[self.bookmarks_items[-1].itemNumber]["icon"],path=self.bookmarksURL,edit=True, bookmark=self.bookmarksList[self.bookmarks_items[-1].itemNumber]: self.addBookmark(url,title,icon,edit,parentFolder=path,bookmark=bookmark))
+                        self.bookmarks_items[-1].operationsMenu.add_command(label = "Delete",command = lambda path=f"{self.bookmarksURL}/{self.bookmarksList[self.bookmarks_items[-1].itemNumber]["title"]}",bookmark=self.bookmarksList[self.bookmarks_items[-1].itemNumber]: self.deleteBookmark(path,bookmark))
+                        self.bookmarks_items[-1].operationsMenu.add_command(label = "Move",command = lambda path=f"{self.bookmarksURL}/{self.bookmarksList[self.bookmarks_items[-1].itemNumber]["title"]}",bookmark=self.bookmarksList[self.bookmarks_items[-1].itemNumber]: self.moveBookmark(path,bookmark))
+                        self.bookmarks_items[-1].operationsMenu.add_command(label = "Copy",command = lambda path=f"{self.bookmarksURL}/{self.bookmarksList[self.bookmarks_items[-1].itemNumber]["title"]}",bookmark=self.bookmarksList[self.bookmarks_items[-1].itemNumber]: self.copyBookmark(path,bookmark))
+                        self.bookmarks_items[-1].operationsButton=ttk.Menubutton(self.bookmarks_items[-1].bottomFrame,menu=self.bookmarks_items[-1].operationsMenu,text="≡")
+                        self.bookmarks_items[-1].operationsButton.pack(side="right")
                         self.bookmarks_items[-1].bind("<Button-1>", lambda e, url=self.bookmarksList[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
                         self.bookmarks_items[-1].iconLabel.bind("<Button-1>",lambda e, url=self.bookmarksList[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
-                        self.bookmarks_items[-1].bottomFrame.bind("<Button-1>", lambda e, url=self.bookmarksList[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
+                        self.bookmarks_items[-1].urlLabel.bind("<Button-1>", lambda e, url=self.bookmarksList[self.bookmarks_items[-1].itemNumber]["url"]: self.setUrl(url))
                     if self.searching:
                         self.searchRenderRunning = False
                     self.bookmarks_items[-1].pack(side = "top", anchor="w", fill="x")
@@ -193,17 +181,21 @@ class Bookmarks:
 
     def loadTreeview(self,parent="",items=fileHandler.bookmarks,isFirst=True,parentText=""): # Recursively load all items.
         if isFirst:
+            self.iids=0
             self.foldersDropdownOptions=["/"]
             for i in self.foldersList.get_children():
                 self.foldersList.delete(i)
+            self.foldersList.insert("",tkinter.END,iid=self.iids,values="All Bookmarks",text="")
+            self.iids=+1
         for i in items:
-                print(f"item type {i}")
+                print(f"item type {i['type']}")
                 if i['type'] == "folder":
-                    print(f"[Bookmarks] processing {i['title']}")
+                    self.iids+=1
+                    print(f"[Bookmarks] processing {i['title']},iid: {self.iids}")
                     newParentText= parentText+"/"+i['title']
-                    self.foldersList.insert(parent,tkinter.END,iid=i,values=[i['title']],text=newParentText)
+                    self.foldersList.insert(parent,tkinter.END,iid=self.iids,values=[i['title']],text=newParentText)
                     self.foldersDropdownOptions.append(newParentText) #Add folder item for folder select dropdowns
-                    self.loadTreeview(i,i['items'],False,newParentText)
+                    self.loadTreeview(self.iids,i['items'],False,newParentText)
         self.foldersList.update()
 
     def destroyAllItems(self):
@@ -221,6 +213,8 @@ class Bookmarks:
         self.bookmarks_container.configure(scrollregion=self.bookmarks_container.bbox("all"))
 
     def setUrl(self, url):
+        if url == "flamingearth://bookmarks/": # Rewrite so both "/" and "" paths work.
+            url = "flamingearth://bookmarks"
         self.bookmarksURL = url
         print(f"[Bookmarks] URL set to {self.bookmarksURL}")
         self.bookmarks_list.event_generate("<<BookmarksURLClicked>>")
@@ -317,10 +311,18 @@ class Bookmarks:
         else:
             print("Search still rendering")
     
-    def addBookmark(self,url=None,title=None,icon=None,edit=False,editIndex=None,parentFolder = "/"):
+    def addBookmark(self,url=None,title=None,icon=None,edit=False,editIndex=None,parentFolder = "/",bookmark=None):
+        parentFolder = parentFolder.lstrip("flamingearth://bookmarks")
         self.addWindow = tkinter.Toplevel()
-        self.addWindow.title("Add Bookmark")
-        self.addWindow.geometry("300x200")
+        if edit:
+            self.addWindow.title("Edit Bookmark")
+            # Collect old title and type so old data can be deleted.
+            self.oldTitle = title
+            self.oldType = "bookmark"
+            self.oldPath = parentFolder
+        else:
+            self.addWindow.title("Add Bookmark")
+        self.addWindow.geometry("600x400")
         self.titleText = tkinter.Label(self.addWindow,text="Title")
         self.titleText.pack(side="top")
         self.titleEntry = ttk.Entry(self.addWindow)
@@ -329,34 +331,41 @@ class Bookmarks:
             self.titleEntry.delete(0,tkinter.END)
             self.titleEntry.insert(0,string=title)
         self.urlVar = tkinter.StringVar(self.addWindow)
-        if url is None:
-            self.urlText = tkinter.Label(self.addWindow,text="URL")
-            self.urlText.pack(side="top")
-            self.urlEntry = ttk.Entry(self.addWindow,textvariable=self.urlVar)
-            self.urlEntry.pack(side="top")
-        else:
+        self.urlText = tkinter.Label(self.addWindow,text="URL")
+        self.urlText.pack(side="top")
+        self.urlEntry = ttk.Entry(self.addWindow,textvariable=self.urlVar)
+        self.urlEntry.pack(side="top")
+        if url is not None:
             self.urlVar.set(url)
         self.folderText = tkinter.Label(self.addWindow,text="Folder")
         self.folderText.pack(side="top")
         self.fsVar = tkinter.StringVar(self.addWindow,parentFolder)
         self.folderSelector = ttk.Combobox(self.addWindow,values=self.foldersDropdownOptions,textvariable=self.fsVar)
         self.folderSelector.pack(side="top")
-
         self.buttonFrame = ttk.Frame(self.addWindow,style="Card.TFrame")
         self.buttonFrame.pack(side="bottom", fill="x")
 
         self.saveButton = ttk.Button(self.buttonFrame, text="Save", style="Accent.TButton",command=self.saveBookmark)
         self.saveButton.pack(side="right")
         if edit==True:
-            self.deleteButton = ttk.Button(self.buttonFrame,text="Delete")
+            self.deleteButton = ttk.Button(self.buttonFrame,text="Delete",command = lambda path = parentFolder,bookmark=bookmark:self.deleteBookmark(path,bookmark,True,False))
             self.deleteButton.pack(side="right")
         self.cancelButton = ttk.Button(self.buttonFrame, text="Cancel", command=self.addWindow.destroy)
         self.cancelButton.pack(side="right")
     
-    def addFolder(self,title=None,edit=False,editIndex=None,parentFolder = "/"):
+    def addFolder(self,title=None,edit=False,editIndex=None,parentFolder = "/",bookmark=None):
+        parentFolder = parentFolder[24:]
         self.addFolderWindow = tkinter.Toplevel()
-        self.addFolderWindow.title("Add Folder")
-        self.addFolderWindow.geometry("300x200")
+        if edit:
+            self.addFolderWindow.title("Edit Folder")
+            # Collect old title and type so old data can be deleted.
+            self.oldTitle = title
+            self.oldType = "folder"
+            self.oldPath = parentFolder
+            self.oldData = bookmark["items"]
+        else:
+            self.addFolderWindow.title("Add Folder")
+        self.addFolderWindow.geometry("600x400")
         self.folderTitleText = tkinter.Label(self.addFolderWindow,text="Title")
         self.folderTitleText.pack(side="top")
         self.folderTitleEntry = ttk.Entry(self.addFolderWindow)
@@ -373,15 +382,17 @@ class Bookmarks:
         self.buttonFrame = ttk.Frame(self.addFolderWindow,style="Card.TFrame")
         self.buttonFrame.pack(side="bottom", fill="x")
 
-        self.saveButton = ttk.Button(self.buttonFrame, text="Save", style="Accent.TButton", command=self.saveFolder)
+        self.saveButton = ttk.Button(self.buttonFrame, text="Save", style="Accent.TButton", command=lambda editSave=edit,:self.saveFolder(editSave))
         self.saveButton.pack(side="right")
         if edit==True:
-            self.deleteButton = ttk.Button(self.buttonFrame,text="Delete")
+            self.deleteButton = ttk.Button(self.buttonFrame,text="Delete",command = lambda path = parentFolder,bookmark=bookmark:self.deleteBookmark(path,bookmark,True,True))
             self.deleteButton.pack(side="right")
         self.cancelButton = ttk.Button(self.buttonFrame, text="Cancel", command=self.addFolderWindow.destroy)
         self.cancelButton.pack(side="right")
 
-    def saveBookmark(self):
+    def saveBookmark(self,edit=False):
+        if edit: #Delete and re-add with new data.
+            fileHandler.deleteBookmarks(self.oldTitle,"bookmark",self.oldPath)
         title = self.titleEntry.get()
         url = self.urlVar.get()
         folder = self.folderSelector.get()
@@ -411,11 +422,18 @@ class Bookmarks:
                 'url': url,
         }
         fileHandler.appendBookmarks(saveJson,folder)
+        # Reload Bookmarks viewer
+        self.setUrl(f"flamingearth://bookmarks{folder}")
 
-
-    def saveFolder(self):
+    def saveFolder(self,edit=False):
+        if edit: #Delete and re-add with new data.
+            fileHandler.deleteBookmarks(self.oldTitle,"folder",self.oldPath)
         title = self.folderTitleEntry.get()
         folder = self.folderSelector.get()
+        if self.oldData is None:
+            data = []
+        else:
+            data = self.oldData
         createFolder = False
         userAsked = False
         if folder not in self.foldersDropdownOptions:
@@ -431,9 +449,87 @@ class Bookmarks:
         saveJson = {
                 'title': title,
                 'type': "folder",
-                'items': [],
+                'items': data,
         }
         fileHandler.appendBookmarks(saveJson,folder)
+        # Reload Bookmarks viewer and treeview/dropdown
+        self.loadTreeview(parent="",items=fileHandler.bookmarks,isFirst=True)
+        self.setUrl(f"flamingearth://bookmarks{folder}")
+
+    def deleteBookmark(self,path,bookmark,fromEdit=False,folderDelete=False):
+        print(path)
+        path = path[25:].rstrip(f"/{bookmark["title"]}")
+        # Destroy edit window if from edit window
+        if fromEdit and not folderDelete:
+            self.addWindow.destroy()
+        elif fromEdit and folderDelete:
+            self.addFolderWindow.destroy()
+        confirmation = messagebox.askyesno("Confirm deletion","Are you sure you want to delete this item? You cannot get it back after deletion.")
+        out=-1
+        if confirmation:
+            out=fileHandler.deleteBookmarks(bookmark["title"],bookmark["type"],path)
+        print(out)
+        # Reload Bookmarks viewer and treeview/dropdown
+        if out==0:
+            self.loadTreeview(parent="",items=fileHandler.bookmarks,isFirst=True)
+            self.setUrl(f"flamingearth://bookmarks/{path}")
+
+    def moveBookmark(self,path,bookmark):
+        self.path = path[25:]
+        self.data = bookmark
+        self.moveFolderWindow = tkinter.Toplevel()
+        self.moveFolderWindow.title("Move Item")
+        self.moveFolderWindow.geometry("300x200")
+        self.folderText = tkinter.Label(self.moveFolderWindow,text="Move item to folder:")
+        self.folderText.pack(side="top")
+        self.fsVar = tkinter.StringVar(self.moveFolderWindow,"/")
+        self.folderSelector = ttk.Combobox(self.moveFolderWindow,values=self.foldersDropdownOptions,textvariable=self.fsVar)
+        self.folderSelector.pack(side="top")
+
+        self.buttonFrame = ttk.Frame(self.moveFolderWindow,style="Card.TFrame")
+        self.buttonFrame.pack(side="bottom", fill="x")
+
+        self.saveButton = ttk.Button(self.buttonFrame, text="Move", style="Accent.TButton", command=self.moveObject)
+        self.saveButton.pack(side="right")
+        self.cancelButton = ttk.Button(self.buttonFrame, text="Cancel", command=self.moveFolderWindow.destroy)
+        self.cancelButton.pack(side="right")
+
+    def moveObject(self):
+        fileHandler.deleteBookmarks(self.data["title"],self.data["type"],self.path)
+        newPath = self.fsVar.get()
+        fileHandler.appendBookmarks(self.data,newPath)
+        self.moveFolderWindow.destroy()
+        # Reload Bookmarks viewer and treeview/dropdown
+        self.loadTreeview(parent="",items=fileHandler.bookmarks,isFirst=True)
+        self.setUrl(f"flamingearth://bookmarks{newPath}")
+
+    def copyBookmark(self,path,bookmark):
+        self.parentFolder = path[25:]
+        self.data = bookmark
+        self.copyFolderWindow = tkinter.Toplevel()
+        self.copyFolderWindow.title("Copy Item")
+        self.copyFolderWindow.geometry("300x200")
+        self.folderText = tkinter.Label(self.copyFolderWindow,text="Copy item to folder:")
+        self.folderText.pack(side="top")
+        self.fsVar = tkinter.StringVar(self.copyFolderWindow,"/")
+        self.folderSelector = ttk.Combobox(self.copyFolderWindow,values=self.foldersDropdownOptions,textvariable=self.fsVar)
+        self.folderSelector.pack(side="top")
+
+        self.buttonFrame = ttk.Frame(self.copyFolderWindow,style="Card.TFrame")
+        self.buttonFrame.pack(side="bottom", fill="x")
+
+        self.saveButton = ttk.Button(self.buttonFrame, text="Copy", style="Accent.TButton", command=self.copyObject)
+        self.saveButton.pack(side="right")
+        self.cancelButton = ttk.Button(self.buttonFrame, text="Cancel", command=self.copyFolderWindow.destroy)
+        self.cancelButton.pack(side="right")
+
+    def copyObject(self):
+        newPath = self.fsVar.get()
+        fileHandler.appendBookmarks(self.data,newPath)
+        self.copyFolderWindow.destroy()
+        # Reload Bookmarks viewer and treeview/dropdown
+        self.loadTreeview(parent="",items=fileHandler.bookmarks,isFirst=True)
+        self.setUrl(f"flamingearth://bookmarks{newPath}")
 
 class BookmarkBar:
     def __init__(self,tab):
